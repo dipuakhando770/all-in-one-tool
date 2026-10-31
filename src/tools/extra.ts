@@ -922,5 +922,470 @@ export const extraTools: ToolDefinition[] = [
     faqs: [],
     related: [],
   },
+  {
+    id: "image-rotator", slug: "image-rotator", category: "image", icon: "RotateCw",
+    name: L("Image Rotator", "ইমেজ রোটেটর"),
+    description: L("Rotate image by degrees.", "ডিগ্রি অনুযায়ী ছবি ঘোরান।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "deg", label: L("Degrees", "ডিগ্রি"), type: "number", min: -360, max: 360, step: 1 },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      const deg = Number(input.deg) || 90;
+      const rad = (deg * Math.PI) / 180;
+      const canvas = document.createElement("canvas");
+      const cos = Math.abs(Math.cos(rad)), sin = Math.abs(Math.sin(rad));
+      canvas.width = Math.round(img.width * cos + img.height * sin);
+      canvas.height = Math.round(img.width * sin + img.height * cos);
+      const ctx = canvas.getContext("2d")!;
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate(rad);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+      const du = await new Promise<string>((resolve) => { canvas.toBlob((b) => { if (!b) return resolve(""); const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(b); }, file.type || "image/png"); });
+      return { kind: "image", value: du, filename: "rotated.png" };
+    },
+    seoTitle: L("Image Rotator", "ইমেজ রোটেটর"),
+    seoDescription: L("Rotate images.", "ছবি ঘোরান।"),
+    keywords: ["image rotator"],
+    instructions: LI(["Upload image, enter degrees."], ["ছবি আপলোড, ডিগ্রি দিন।"]),
+    faqs: [],
+    related: ["image-resizer"],
+  },
+  {
+    id: "image-flipper", slug: "image-flipper", category: "image", icon: "FlipHorizontal",
+    name: L("Image Flipper", "ইমেজ ফ্লিপার"),
+    description: L("Flip image horizontally or vertically.", "छবি অনুভূমিক বা উল্লম্বভাবে ফ্লিপ করুন।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "dir", label: L("Direction", "দিক"), type: "select", options: [
+        { value: "h", label: L("Horizontal", "অনুভূমিক") },
+        { value: "v", label: L("Vertical", "উল্লম্ব") },
+      ] },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      if (input.dir === "v") { ctx.translate(0, canvas.height); ctx.scale(1, -1); }
+      else { ctx.translate(canvas.width, 0); ctx.scale(-1, 1); }
+      ctx.drawImage(img, 0, 0);
+      const du = await new Promise<string>((resolve) => { canvas.toBlob((b) => { if (!b) return resolve(""); const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(b); }, file.type || "image/png"); });
+      return { kind: "image", value: du, filename: "flipped.png" };
+    },
+    seoTitle: L("Image Flipper", "ইমেজ ফ্লিপার"),
+    seoDescription: L("Flip images.", "ছবি ফ্লিপ করুন।"),
+    keywords: ["image flipper"],
+    instructions: LI(["Upload image and choose direction."], ["ছবি আপলোড ও দিক বেছে নিন।"]),
+    faqs: [],
+    related: ["image-rotator"],
+  },
+  {
+    id: "image-blur-tool", slug: "image-blur-tool", category: "image", icon: "Droplet",
+    name: L("Image Blur Tool", "ইমেজ ব্লার টুল"),
+    description: L("Apply blur to an image.", "ছবিতে ব্লার প্রয়োগ করুন।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "amount", label: L("Blur (px)", "ব্লার (px)"), type: "number", min: 0, max: 20, step: 1 },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      ctx.filter = `blur(${Number(input.amount) || 4}px)`;
+      ctx.drawImage(img, 0, 0);
+      const du = await new Promise<string>((resolve) => { canvas.toBlob((b) => { if (!b) return resolve(""); const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(b); }, file.type || "image/png"); });
+      return { kind: "image", value: du, filename: "blurred.png" };
+    },
+    seoTitle: L("Image Blur Tool", "ইমেজ ব্লার টুল"),
+    seoDescription: L("Blur images.", "ছবি ব্লার করুন।"),
+    keywords: ["image blur tool"],
+    instructions: LI(["Upload image, set blur."], ["ছবি আপলোড, ব্লার সেট করুন।"]),
+    faqs: [],
+    related: ["image-pixelate-tool"],
+  },
+  {
+    id: "image-pixelate-tool", slug: "image-pixelate-tool", category: "image", icon: "Grid",
+    name: L("Image Pixelate Tool", "ইমেজ পিক্সেলেট টুল"),
+    description: L("Pixelate an image.", "ছবি পিক্সেলেট করুন।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "block", label: L("Block Size", "ব্লক সাইজ"), type: "number", min: 2, max: 40, step: 1 },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      const block = Math.max(2, Number(input.block) || 8);
+      const w = Math.floor(img.width / block), h = Math.floor(img.height / block);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width; canvas.height = img.height;
+      const ctx = canvas.getContext("2d")!;
+      const tmp = document.createElement("canvas"); tmp.width = w; tmp.height = h;
+      const tctx = tmp.getContext("2d")!;
+      tctx.drawImage(img, 0, 0, w, h);
+      ctx.imageSmoothingEnabled = false;
+      ctx.drawImage(tmp, 0, 0, w, h, 0, 0, canvas.width, canvas.height);
+      const du = await new Promise<string>((resolve) => { canvas.toBlob((b) => { if (!b) return resolve(""); const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(b); }, file.type || "image/png"); });
+      return { kind: "image", value: du, filename: "pixelated.png" };
+    },
+    seoTitle: L("Image Pixelate Tool", "ইমেজ পিক্সেলেট টুল"),
+    seoDescription: L("Pixelate images.", "ছবি পিক্সেলেট করুন।"),
+    keywords: ["image pixelate tool"],
+    instructions: LI(["Upload image, set block size."], ["ছবি আপলোড, ব্লক সাইজ সেট করুন।"]),
+    faqs: [],
+    related: ["image-blur-tool"],
+  },
+  {
+    id: "image-dimensions-checker", slug: "image-dimensions-checker", category: "image", icon: "Ruler",
+    name: L("Image Dimensions Checker", "ইমেজ ডাইমেনশন চেকার"),
+    description: L("Check image width, height and size.", "ছবির প্রস্থ, উচ্চতা ও সাইজ চেক করুন।"),
+    inputSchema: [{ name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true }],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      return { kind: "text", value: `Width: ${img.width}px\nHeight: ${img.height}px\nAspect ratio: ${(img.width/img.height).toFixed(2)}\nFile size: ${(file.size/1024).toFixed(2)} KB\nType: ${file.type}` };
+    },
+    seoTitle: L("Image Dimensions Checker", "ইমেজ ডাইমেনশন চেকার"),
+    seoDescription: L("Check image dimensions.", "ছবির মাপ চেক করুন।"),
+    keywords: ["image dimensions checker"],
+    instructions: LI(["Upload image."], ["ছবি আপলোড করুন।"]),
+    faqs: [],
+    related: ["image-resizer"],
+  },
+  {
+    id: "text-diff-checker", slug: "text-diff-checker", category: "text", icon: "GitCompare",
+    name: L("Text Diff Checker", "টেক্সট ডিফ চেকার"),
+    description: L("Compare two texts line by line.", "দুটি টেক্সট লাইন বাই লাইন তুলনা করুন।"),
+    inputSchema: [
+      { name: "a", label: L("Text A", "টেক্সট A"), type: "textarea", required: true },
+      { name: "b", label: L("Text B", "টেক্সট B"), type: "textarea", required: true },
+    ],
+    run: (input) => {
+      const a = String(input.a || "").split(/\n/);
+      const b = String(input.b || "").split(/\n/);
+      const n = Math.max(a.length, b.length);
+      const out: string[] = [];
+      for (let i = 0; i < n; i++) {
+        const la = a[i] ?? ""; const lb = b[i] ?? "";
+        if (la === lb) out.push(`  ${la}`);
+        else { if (la) out.push(`- ${la}`); if (lb) out.push(`+ ${lb}`); }
+      }
+      return { kind: "text", value: out.join("\n") };
+    },
+    seoTitle: L("Text Diff Checker", "টেক্সট ডিফ চেকার"),
+    seoDescription: L("Compare two texts.", "দুটি টেক্সট তুলনা করুন।"),
+    keywords: ["text diff checker"],
+    instructions: LI(["Paste both texts."], ["দুই টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "find-and-replace", slug: "find-and-replace", category: "text", icon: "Search",
+    name: L("Find and Replace", "ফাইন্ড অ্যান্ড রিপ্লেস"),
+    description: L("Find and replace text.", "টেক্সট খুঁজুন ও প্রতিস্থাপন করুন।"),
+    inputSchema: [
+      { name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true },
+      { name: "find", label: L("Find", "খুঁজুন"), type: "text", required: true },
+      { name: "replace", label: L("Replace", "প্রতিস্থাপন"), type: "text" },
+      { name: "all", label: L("Replace All", "সব প্রতিস্থাপন"), type: "checkbox" },
+    ],
+    run: (input) => {
+      const t = String(input.text || "");
+      const f = String(input.find || "");
+      const r = String(input.replace || "");
+      if (!f) return { kind: "text", value: t };
+      if (input.all) return { kind: "text", value: t.split(f).join(r) };
+      return { kind: "text", value: t.replace(f, r) };
+    },
+    seoTitle: L("Find and Replace", "ফাইন্ড অ্যান্ড রিপ্লেস"),
+    seoDescription: L("Find and replace text.", "টেক্সট খুঁজুন ও প্রতিস্থাপন করুন।"),
+    keywords: ["find and replace"],
+    instructions: LI(["Paste text, enter find/replace."], ["টেক্সট পেস্ট করে find/replace দিন।"]),
+    faqs: [],
+    related: ["text-cleaner"],
+  },
+  {
+    id: "text-to-slug", slug: "text-to-slug", category: "text", icon: "Link",
+    name: L("Text to Slug", "টেক্সট টু স্লাগ"),
+    description: L("Convert text to a URL slug.", "টেক্সটকে URL স্লাগে রূপান্তর করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "text", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      const slug = t.toLowerCase().trim().replace(/[^a-z0-9\u0980-\u09ff]+/g, "-").replace(/^-+|-+$/g, "");
+      return { kind: "text", value: slug };
+    },
+    seoTitle: L("Text to Slug", "টেক্সট টু স্লাগ"),
+    seoDescription: L("Convert text to slug.", "টেক্সট স্লাগে রূপান্তর করুন।"),
+    keywords: ["text to slug"],
+    instructions: LI(["Enter text."], ["টেক্সট লিখুন।"]),
+    faqs: [],
+    related: ["url-slug-generator"],
+  },
+  {
+    id: "readability-checker", slug: "readability-checker", category: "text", icon: "BookOpen",
+    name: L("Readability Checker", "রিডেবিলিটি চেকার"),
+    description: L("Basic readability metrics for text.", "টেক্সটের বেসিক রিডেবিলিটি মেট্রিক্স।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+      const sentences = t.trim() ? (t.match(/[.!?]+/g) || []).length || 1 : 0;
+      const avg = sentences ? (words / sentences).toFixed(1) : "0";
+      return { kind: "text", value: `Words: ${words}\nSentences: ${sentences}\nAvg words/sentence: ${avg}` };
+    },
+    seoTitle: L("Readability Checker", "রিডেবিলিটি চেকার"),
+    seoDescription: L("Check readability.", "রিডেবিলিটি পরীক্ষা করুন।"),
+    keywords: ["readability checker"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["word-counter"],
+  },
+  {
+    id: "text-reverser", slug: "text-reverser", category: "text", icon: "ArrowLeftRight",
+    name: L("Text Reverser", "টেক্সট রিভার্সার"),
+    description: L("Reverse text, words or lines.", "টেক্সট, শব্দ বা লাইন উল্টে দিন।"),
+    inputSchema: [
+      { name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true },
+      { name: "mode", label: L("Mode", "মোড"), type: "select", options: [
+        { value: "chars", label: L("Characters", "অক্ষর") },
+        { value: "words", label: L("Words", "শব্দ") },
+        { value: "lines", label: L("Lines", "লাইন") },
+      ] },
+    ],
+    run: (input) => {
+      const t = String(input.text || "");
+      const mode = input.mode || "chars";
+      if (mode === "words") return { kind: "text", value: t.split(/\s+/).reverse().join(" ") };
+      if (mode === "lines") return { kind: "text", value: t.split(/\n/).reverse().join("\n") };
+      return { kind: "text", value: t.split("").reverse().join("") };
+    },
+    seoTitle: L("Text Reverser", "টেক্সট রিভার্সার"),
+    seoDescription: L("Reverse text.", "টেক্সট উল্টান।"),
+    keywords: ["text reverser"],
+    instructions: LI(["Paste text and choose mode."], ["টেক্সট পেস্ট করে মোড বেছে নিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "html-minifier", slug: "html-minifier", category: "developer", icon: "Minimize2",
+    name: L("HTML Minifier", "HTML মিনিফায়ার"),
+    description: L("Minify HTML code.", "HTML কোড মিনিফাই করুন।"),
+    inputSchema: [{ name: "html", label: L("HTML", "HTML"), type: "textarea", required: true }],
+    run: (input) => {
+      const html = String(input.html || "");
+      const min = html.replace(/<!--[\s\S]*?-->/g, "").replace(/\s+/g, " ").replace(/>\s+</g, "><").trim();
+      return { kind: "text", value: min };
+    },
+    seoTitle: L("HTML Minifier", "HTML মিনিফায়ার"),
+    seoDescription: L("Minify HTML.", "HTML মিনিফাই করুন।"),
+    keywords: ["html minifier"],
+    instructions: LI(["Paste HTML."], ["HTML পেস্ট করুন।"]),
+    faqs: [],
+    related: ["css-minifier", "js-minifier"],
+  },
+  {
+    id: "css-formatter", slug: "css-formatter", category: "developer", icon: "Code",
+    name: L("CSS Formatter", "CSS ফরম্যাটার"),
+    description: L("Format CSS code.", "CSS কোড ফরম্যাট করুন।"),
+    inputSchema: [{ name: "css", label: L("CSS", "CSS"), type: "textarea", required: true }],
+    run: (input) => {
+      const css = String(input.css || "");
+      let out = css.replace(/\s*\{\s*/g, " {\n  ").replace(/;\s*/g, ";\n  ").replace(/\s*\}\s*/g, "\n}\n");
+      return { kind: "text", value: out.trim() };
+    },
+    seoTitle: L("CSS Formatter", "CSS ফরম্যাটার"),
+    seoDescription: L("Format CSS.", "CSS ফরম্যাট করুন।"),
+    keywords: ["css formatter"],
+    instructions: LI(["Paste CSS."], ["CSS পেস্ট করুন।"]),
+    faqs: [],
+    related: ["css-minifier"],
+  },
+  {
+    id: "js-formatter", slug: "js-formatter", category: "developer", icon: "Code",
+    name: L("JavaScript Formatter", "JavaScript ফরম্যাটার"),
+    description: L("Basic JavaScript formatting.", "বেসিক JavaScript ফরম্যাটিং।"),
+    inputSchema: [{ name: "js", label: L("JavaScript", "JavaScript"), type: "textarea", required: true }],
+    run: (input) => {
+      const js = String(input.js || "");
+      let out = js.replace(/;/g, ";\n").replace(/\{/g, " {\n").replace(/\}/g, "\n}\n");
+      return { kind: "text", value: out.trim() };
+    },
+    seoTitle: L("JavaScript Formatter", "JavaScript ফরম্যাটার"),
+    seoDescription: L("Format JavaScript.", "JavaScript ফরম্যাট করুন।"),
+    keywords: ["javascript formatter"],
+    instructions: LI(["Paste JS."], ["JS পেস্ট করুন।"]),
+    faqs: [],
+    related: ["js-minifier"],
+  },
+  {
+    id: "markdown-preview", slug: "markdown-preview", category: "developer", icon: "FileText",
+    name: L("Markdown Preview", "মার্কডাউন প্রিভিউ"),
+    description: L("Preview Markdown as HTML (basic).", "মার্কডাউন বেসিক HTML প্রিভিউ।"),
+    inputSchema: [{ name: "md", label: L("Markdown", "মার্কডাউন"), type: "textarea", required: true }],
+    run: (input) => {
+      const md = String(input.md || "");
+      const html = md
+        .replace(/^### (.*)$/gm, "<h3>$1</h3>")
+        .replace(/^## (.*)$/gm, "<h2>$1</h2>")
+        .replace(/^# (.*)$/gm, "<h1>$1</h1>")
+        .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+        .replace(/\*(.*?)\*/g, "<em>$1</em>")
+        .replace(/\n/g, "<br>");
+      return { kind: "html", value: html };
+    },
+    seoTitle: L("Markdown Preview", "মার্কডাউন প্রিভিউ"),
+    seoDescription: L("Preview Markdown.", "মার্কডাউন প্রিভিউ করুন।"),
+    keywords: ["markdown preview"],
+    instructions: LI(["Paste Markdown."], ["মার্কডাউন পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "user-agent-parser", slug: "user-agent-parser", category: "developer", icon: "Monitor",
+    name: L("User Agent Parser", "ইউজার এজেন্ট পার্সার"),
+    description: L("Parse user agent string.", "ইউজার এজেন্ট স্ট্রিং পার্স করুন।"),
+    inputSchema: [{ name: "ua", label: L("User Agent", "ইউজার এজেন্ট"), type: "textarea", required: true }],
+    run: (input) => {
+      const ua = String(input.ua || "");
+      const browser = ua.match(/(Chrome|Firefox|Safari|Edge|Opera)\/[\d.]+/i)?.[0] || "Unknown";
+      const os = ua.match(/(Windows|Macintosh|Linux|Android|iPhone|iPad)/i)?.[0] || "Unknown";
+      return { kind: "text", value: `Browser: ${browser}\nOS: ${os}` };
+    },
+    seoTitle: L("User Agent Parser", "ইউজার এজেন্ট পার্সার"),
+    seoDescription: L("Parse user agent.", "ইউজার এজেন্ট পার্স করুন।"),
+    keywords: ["user agent parser"],
+    instructions: LI(["Paste user agent."], ["ইউজার এজেন্ট পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "http-status-reference", slug: "http-status-reference", category: "developer", icon: "Globe",
+    name: L("HTTP Status Code Reference", "HTTP স্ট্যাটাস কোড রেফারেন্স"),
+    description: L("Look up HTTP status code meaning.", "HTTP স্ট্যাটাস কোডের অর্থ খুঁজুন।"),
+    inputSchema: [{ name: "code", label: L("Status Code", "স্ট্যাটাস কোড"), type: "number", required: true }],
+    run: (input) => {
+      const map: Record<number, string> = { 200: "OK", 201: "Created", 301: "Moved Permanently", 302: "Found", 400: "Bad Request", 401: "Unauthorized", 403: "Forbidden", 404: "Not Found", 500: "Internal Server Error", 503: "Service Unavailable" };
+      const c = Number(input.code);
+      return { kind: "text", value: map[c] || "Unknown status code" };
+    },
+    seoTitle: L("HTTP Status Code Reference", "HTTP স্ট্যাটাস কোড রেফারেন্স"),
+    seoDescription: L("HTTP status codes.", "HTTP স্ট্যাটাস কোড।"),
+    keywords: ["http status code"],
+    instructions: LI(["Enter a status code."], ["স্ট্যাটাস কোড লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "serp-snippet-preview", slug: "serp-snippet-preview", category: "seo", icon: "Search",
+    name: L("SERP Snippet Preview", "SERP স্নিপেট প্রিভিউ"),
+    description: L("Preview a search result snippet.", "সার্চ রিজাল্ট স্নিপেট প্রিভিউ করুন।"),
+    inputSchema: [
+      { name: "title", label: L("Title", "শিরোনাম"), type: "text", required: true },
+      { name: "url", label: L("URL", "URL"), type: "text", required: true },
+      { name: "description", label: L("Description", "বিবরণ"), type: "textarea" },
+    ],
+    run: (input) => {
+      const html = `<div style="font-family:Arial;max-width:600px"><div style="color:#1a0dab;font-size:18px">${input.title}</div><div style="color:#006621;font-size:14px">${input.url}</div><div style="color:#545454;font-size:14px">${input.description || ""}</div></div>`;
+      return { kind: "html", value: html };
+    },
+    seoTitle: L("SERP Snippet Preview", "SERP স্নিপেট প্রিভিউ"),
+    seoDescription: L("Preview SERP snippet.", "SERP স্নিপেট প্রিভিউ করুন।"),
+    keywords: ["serp snippet preview"],
+    instructions: LI(["Enter title, url, description."], ["শিরোনাম, URL, বিবরণ দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "canonical-url-checker", slug: "canonical-url-checker", category: "seo", icon: "Link",
+    name: L("Canonical URL Checker", "ক্যানোনিকাল URL চেকার"),
+    description: L("Extract canonical tag from HTML.", "HTML থেকে ক্যানোনিকাল ট্যাগ বের করুন।"),
+    inputSchema: [{ name: "html", label: L("HTML", "HTML"), type: "textarea", required: true }],
+    run: (input) => {
+      const html = String(input.html || "");
+      const m = html.match(/<link[^>]*rel=["']canonical["'][^>]*href=["']([^"']*)["']/i);
+      return { kind: "text", value: m ? `Canonical: ${m[1]}` : "No canonical tag found" };
+    },
+    seoTitle: L("Canonical URL Checker", "ক্যানোনিকাল URL চেকার"),
+    seoDescription: L("Check canonical URL.", "ক্যানোনিকাল URL পরীক্ষা করুন।"),
+    keywords: ["canonical url checker"],
+    instructions: LI(["Paste HTML."], ["HTML পেস্ট করুন।"]),
+    faqs: [],
+    related: ["canonical-url-generator"],
+  },
+  {
+    id: "random-number-generator", slug: "random-number-generator", category: "developer", icon: "Dices",
+    name: L("Random Number Generator", "র‍্যান্ডম নাম্বার জেনারেটর"),
+    description: L("Generate random numbers.", "র‍্যান্ডম নাম্বার তৈরি করুন।"),
+    inputSchema: [
+      { name: "min", label: L("Min", "সর্বনিম্ন"), type: "number", required: true },
+      { name: "max", label: L("Max", "সর্বোচ্চ"), type: "number", required: true },
+      { name: "count", label: L("Count", "সংখ্যা"), type: "number", min: 1, max: 50, step: 1 },
+    ],
+    run: (input) => {
+      const min = Number(input.min), max = Number(input.max), n = Math.min(50, Math.max(1, Number(input.count) || 1));
+      const out: string[] = [];
+      for (let i = 0; i < n; i++) out.push(String(Math.floor(Math.random() * (max - min + 1)) + min));
+      return { kind: "text", value: out.join("\n") };
+    },
+    seoTitle: L("Random Number Generator", "র‍্যান্ডম নাম্বার জেনারেটর"),
+    seoDescription: L("Generate random numbers.", "র‍্যান্ডম নাম্বার তৈরি করুন।"),
+    keywords: ["random number generator"],
+    instructions: LI(["Enter min, max, count."], ["সর্বনিম্ন, সর্বোচ্চ, সংখ্যা দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "word-frequency-counter", slug: "word-frequency-counter", category: "text", icon: "BarChart",
+    name: L("Word Frequency Counter", "শব্দ ফ্রিকোয়েন্সি কাউন্টার"),
+    description: L("Count word frequency in text.", "টেক্সটের শব্দ ফ্রিকোয়েন্সি গণনা করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      const words = t.toLowerCase().match(/\b\w+\b/g) || [];
+      const freq: Record<string, number> = {};
+      words.forEach((w) => { freq[w] = (freq[w] || 0) + 1; });
+      const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]);
+      return { kind: "text", value: sorted.map(([w, c]) => `${w}: ${c}`).join("\n") };
+    },
+    seoTitle: L("Word Frequency Counter", "শব্দ ফ্রিকোয়েন্সি কাউন্টার"),
+    seoDescription: L("Count word frequency.", "শব্দ ফ্রিকোয়েন্সি গণনা করুন।"),
+    keywords: ["word frequency counter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["word-counter"],
+  },
+  {
+    id: "password-strength-checker", slug: "password-strength-checker", category: "developer", icon: "Shield",
+    name: L("Password Strength Checker", "পাসওয়ার্ড স্ট্রেংথ চেকার"),
+    description: L("Check password strength locally.", "পাসওয়ার্ডের শক্তি লোকালি চেক করুন।"),
+    inputSchema: [{ name: "password", label: L("Password", "পাসওয়ার্ড"), type: "text", required: true }],
+    run: (input) => {
+      const p = String(input.password || "");
+      let score = 0;
+      if (p.length >= 8) score++;
+      if (/[A-Z]/.test(p)) score++;
+      if (/[a-z]/.test(p)) score++;
+      if (/[0-9]/.test(p)) score++;
+      if (/[^A-Za-z0-9]/.test(p)) score++;
+      const levels = ["Very Weak", "Weak", "Fair", "Strong", "Very Strong"];
+      return { kind: "text", value: `Score: ${score}/5\nStrength: ${levels[Math.min(score, 4)]}` };
+    },
+    seoTitle: L("Password Strength Checker", "পাসওয়ার্ড স্ট্রেংথ চেকার"),
+    seoDescription: L("Check password strength.", "পাসওয়ার্ডের শক্তি চেক করুন।"),
+    keywords: ["password strength checker"],
+    instructions: LI(["Enter password."], ["পাসওয়ার্ড লিখুন।"]),
+    faqs: [],
+    related: ["password-generator"],
+  },
 ];
 

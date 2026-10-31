@@ -73,5 +73,854 @@ export const extraTools: ToolDefinition[] = [
     faqs: [],
     related: ["text-cleaner"],
   },
+  {
+    id: "xml-formatter", slug: "xml-formatter", category: "developer", icon: "Code",
+    name: L("XML Formatter", "XML ফরম্যাটার"),
+    description: L("Format and indent XML.", "XML ফরম্যাট ও indentation করুন।"),
+    inputSchema: [{ name: "xml", label: L("XML", "XML"), type: "textarea", required: true }],
+    run: (input) => {
+      const xml = String(input.xml || "");
+      let out = "";
+      let indent = 0;
+      const tokens = xml.split(/(><)|(\r\n|\r|\n)/);
+      for (const token of tokens) {
+        if (!token || token.match(/^\s*$/)) continue;
+        if (token.match(/^\s*<\/\w/) || token.match(/<\/\w+\s*>$/)) indent = Math.max(0, indent - 1);
+        out += "  ".repeat(indent) + token.replace(/>\s*</g, "><") + "\n";
+        if (token.match(/^<\w[^>]*[^/]>$/)) indent += 1;
+      }
+      return { kind: "text", value: out.trim() || "Invalid XML" };
+    },
+    seoTitle: L("XML Formatter", "XML ফরম্যাটার"),
+    seoDescription: L("Format XML.", "XML ফরম্যাট করুন।"),
+    keywords: ["xml formatter"],
+    instructions: LI(["Paste XML."], ["XML পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "sql-formatter", slug: "sql-formatter", category: "developer", icon: "Database",
+    name: L("SQL Formatter", "SQL ফরম্যাটার"),
+    description: L("Basic SQL keyword capitalization and line breaks.", "SQL কিওয়ার্ড বড় হাত ও লাইন ব্রেক।"),
+    inputSchema: [{ name: "sql", label: L("SQL", "SQL"), type: "textarea", required: true }],
+    run: (input) => {
+      const sql = String(input.sql || "");
+      const keywords = ["SELECT","FROM","WHERE","AND","OR","JOIN","LEFT","RIGHT","INNER","OUTER","ON","GROUP BY","ORDER BY","INSERT INTO","VALUES","UPDATE","SET","DELETE","CREATE TABLE","ALTER TABLE","DROP TABLE"];
+      let out = sql;
+      keywords.forEach((k) => { const re = new RegExp("\\b(" + k.split(" ").join("\\s+") + ")\\b", "gi"); out = out.replace(re, k.toUpperCase()); });
+      out = out.replace(/;/g, ";\n").replace(/,/g, ", ");
+      return { kind: "text", value: out.trim() };
+    },
+    seoTitle: L("SQL Formatter", "SQL ফরম্যাটার"),
+    seoDescription: L("Format SQL.", "SQL ফরম্যাট করুন।"),
+    keywords: ["sql formatter"],
+    instructions: LI(["Paste SQL."], ["SQL পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "hash-generator", slug: "hash-generator", category: "developer", icon: "Key",
+    name: L("Hash Generator", "হ্যাশ জেনারেটর"),
+    description: L("Generate SHA-256 hash locally.", "লোকালি SHA-256 হ্যাশ তৈরি করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: async (input) => {
+      const t = String(input.text || "");
+      const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+      const hash = Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+      return { kind: "text", value: hash };
+    },
+    seoTitle: L("Hash Generator - SHA-256", "হ্যাশ জেনারেটর - SHA-256"),
+    seoDescription: L("Generate SHA-256 hash.", "SHA-256 হ্যাশ তৈরি করুন।"),
+    keywords: ["hash generator", "sha256"],
+    instructions: LI(["Enter text and run."], ["টেক্সট লিখে চালান।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "jwt-decoder", slug: "jwt-decoder", category: "developer", icon: "Lock",
+    name: L("JWT Decoder", "JWT ডিকোডার"),
+    description: L("Decode JWT header and payload locally (no verification).", "JWT হেডার ও পেলোড ডিকোড করুন (যাচাই নয়)।"),
+    inputSchema: [{ name: "token", label: L("JWT Token", "JWT টোকেন"), type: "text", required: true }],
+    run: (input) => {
+      const token = String(input.token || "");
+      const parts = token.split(".");
+      if (parts.length < 2) return { kind: "text", value: "Invalid JWT" };
+      const b64url = (s: string) => s.replace(/-/g, "+").replace(/_/g, "/");
+      try {
+        const header = JSON.parse(decodeURIComponent(escape(atob(b64url(parts[0])))));
+        const payload = JSON.parse(decodeURIComponent(escape(atob(b64url(parts[1])))));
+        return { kind: "json", value: JSON.stringify({ header, payload }, null, 2) };
+      } catch { return { kind: "text", value: "Invalid JWT payload" }; }
+    },
+    seoTitle: L("JWT Decoder", "JWT ডিকোডার"),
+    seoDescription: L("Decode JWT locally.", "JWT লোকালি ডিকোড করুন।"),
+    keywords: ["jwt decoder"],
+    instructions: LI(["Paste JWT."], ["JWT পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "color-converter", slug: "color-converter", category: "developer", icon: "Palette",
+    name: L("Color Converter", "কালার কনভার্টার"),
+    description: L("Convert between HEX, RGB and HSL.", "HEX, RGB ও HSL রূপান্তর করুন।"),
+    inputSchema: [
+      { name: "color", label: L("Color", "কালার"), type: "text", required: true },
+      { name: "to", label: L("To", "এ날"), type: "select", options: [
+        { value: "hex", label: L("HEX", "HEX") }, { value: "rgb", label: L("RGB", "RGB") }, { value: "hsl", label: L("HSL", "HSL") },
+      ] },
+    ],
+    run: (input) => {
+      const c = String(input.color || "").trim();
+      const to = input.to || "hex";
+      const m = c.match(/^#([0-9a-fA-F]{6})$/);
+      if (!m) return { kind: "text", value: "Invalid HEX (#RRGGBB)" };
+      const r = parseInt(m[1].slice(0,2),16), g = parseInt(m[1].slice(2,4),16), b = parseInt(m[1].slice(4,6),16);
+      if (to === "rgb") return { kind: "text", value: `rgb(${r}, ${g}, ${b})` };
+      if (to === "hsl") {
+        const rr=r/255, gg=g/255, bb=b/255; const max=Math.max(rr,gg,bb), min=Math.min(rr,gg,bb);
+        let h=0, s=0, l=(max+min)/2; const d=max-min;
+        if (d!==0){ s=l>0.5?d/(2-max-min):d/(max+min); switch(max){case rr:h=(gg-bb)/d+(gg<bb?6:0);break;case gg:h=(bb-rr)/d+2;break;case bb:h=(rr-gg)/d+4;break;} h/=6; }
+        return { kind: "text", value: `hsl(${Math.round(h*360)}, ${Math.round(s*100)}%, ${Math.round(l*100)}%)` };
+      }
+      return { kind: "text", value: `#${m[1].toUpperCase()}` };
+    },
+    seoTitle: L("Color Converter", "কালার কনভার্টার"),
+    seoDescription: L("Convert HEX, RGB, HSL.", "HEX, RGB, HSL রূপান্তর করুন।"),
+    keywords: ["color converter"],
+    instructions: LI(["Enter HEX and choose target."], ["HEX লিখে লক্ষ্য বেছে নিন।"]),
+    faqs: [],
+    related: ["color-picker"],
+  },
+  {
+    id: "lorem-ipsum-generator", slug: "lorem-ipsum-generator", category: "text", icon: "FileText",
+    name: L("Lorem Ipsum Generator", "লোরেম ইপসাম জেনারেটর"),
+    description: L("Generate placeholder Lorem Ipsum text.", "প্লেসহোল্ডার লোরেম ইপসাম টেক্সট তৈরি করুন।"),
+    inputSchema: [{ name: "paragraphs", label: L("Paragraphs", "অনুচ্ছেদ"), type: "number", min: 1, max: 20, step: 1 }],
+    run: (input) => {
+      const n = Math.min(20, Math.max(1, Number(input.paragraphs) || 3));
+      const para = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam.";
+      return { kind: "text", value: Array(n).fill(para).join("\n\n") };
+    },
+    seoTitle: L("Lorem Ipsum Generator", "লোরেম ইপসাম জেনারেটর"),
+    seoDescription: L("Generate Lorem Ipsum.", "লোরেম ইপসাম তৈরি করুন।"),
+    keywords: ["lorem ipsum generator"],
+    instructions: LI(["Choose paragraph count."], ["অনুচ্ছেদ সংখ্যা বেছে নিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "sentence-counter", slug: "sentence-counter", category: "text", icon: "FileText",
+    name: L("Sentence Counter", "বাক্য কাউন্টার"),
+    description: L("Count sentences in text.", "টেক্সটের বাক্য গণনা করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      const n = t.trim() ? (t.match(/[.!?]+(?:\s|$)/g) || []).length : 0;
+      return { kind: "text", value: `Sentences: ${n}` };
+    },
+    seoTitle: L("Sentence Counter", "বাক্য কাউন্টার"),
+    seoDescription: L("Count sentences.", "বাক্য গণনা করুন।"),
+    keywords: ["sentence counter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["word-counter"],
+  },
+  {
+    id: "paragraph-counter", slug: "paragraph-counter", category: "text", icon: "AlignLeft",
+    name: L("Paragraph Counter", "অনুচ্ছেদ কাউন্টার"),
+    description: L("Count paragraphs in text.", "টেক্সটের অনুচ্ছেদ গণনা করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      const n = t.trim() ? t.split(/\n\s*\n/).filter((p)=>p.trim().length>0).length : 0;
+      return { kind: "text", value: `Paragraphs: ${n}` };
+    },
+    seoTitle: L("Paragraph Counter", "অনুচ্ছেদ কাউন্টার"),
+    seoDescription: L("Count paragraphs.", "অনুচ্ছেদ গণনা করুন।"),
+    keywords: ["paragraph counter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["word-counter"],
+  },
+  {
+    id: "text-sorter", slug: "text-sorter", category: "text", icon: "SortAsc",
+    name: L("Text Sorter", "টেক্সট সর্টার"),
+    description: L("Sort lines alphabetically.", "লাইন বর্ণমালাক্রমে সাজান।"),
+    inputSchema: [
+      { name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true },
+      { name: "order", label: L("Order", "ক্রম"), type: "select", options: [
+        { value: "asc", label: L("A → Z", "A → Z") },
+        { value: "desc", label: L("Z → A", "Z → A") },
+      ] },
+    ],
+    run: (input) => {
+      const lines = String(input.text || "").split(/\n/);
+      const asc = input.order !== "desc";
+      lines.sort((a, b) => asc ? a.localeCompare(b) : b.localeCompare(a));
+      return { kind: "text", value: lines.join("\n") };
+    },
+    seoTitle: L("Text Sorter", "টেক্সট সর্টার"),
+    seoDescription: L("Sort text lines.", "টেক্সট লাইন সাজান।"),
+    keywords: ["text sorter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["text-cleaner"],
+  },
+  {
+    id: "remove-extra-spaces", slug: "remove-extra-spaces", category: "text", icon: "Eraser",
+    name: L("Remove Extra Spaces", "অতিরিক্ত স্পেস অপসারণ"),
+    description: L("Remove duplicate spaces and trim lines.", "ডুপ্লিকেট স্পেস ও লাইন ট্রিম করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      return { kind: "text", value: t.split(/\n/).map((l)=>l.replace(/\s+/g," ").trim()).join("\n") };
+    },
+    seoTitle: L("Remove Extra Spaces", "অতিরিক্ত স্পেস অপসারণ"),
+    seoDescription: L("Remove extra spaces.", "অতিরিক্ত স্পেস সরান।"),
+    keywords: ["remove extra spaces"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["text-cleaner"],
+  },
+  {
+    id: "date-difference-calculator", slug: "date-difference-calculator", category: "calculator", icon: "Calendar",
+    name: L("Date Difference Calculator", "তারিখ পার্থক্য ক্যালকুলেটর"),
+    description: L("Days between two dates.", "দুই তারিখের মধ্যবর্তী দিন।"),
+    inputSchema: [
+      { name: "from", label: L("From Date", "থেকে তারিখ"), type: "date", required: true },
+      { name: "to", label: L("To Date", "পর্যন্ত তারিখ"), type: "date", required: true },
+    ],
+    run: (input) => {
+      const a = new Date(String(input.from)); const b = new Date(String(input.to));
+      if (isNaN(a.getTime()) || isNaN(b.getTime())) return { kind: "text", value: "Invalid date" };
+      const days = Math.round((b.getTime() - a.getTime()) / (1000*60*60*24));
+      return { kind: "text", value: `Difference: ${Math.abs(days)} days` };
+    },
+    seoTitle: L("Date Difference Calculator", "তারিখ পার্থক্য ক্যালকুলেটর"),
+    seoDescription: L("Days between two dates.", "দুই তারিখের মধ্যবর্তী দিন।"),
+    keywords: ["date difference calculator"],
+    instructions: LI(["Pick two dates."], ["দুই তারিখ বেছে নিন।"]),
+    faqs: [],
+    related: ["age-calculator"],
+  },
+  {
+    id: "profit-calculator", slug: "profit-calculator", category: "calculator", icon: "TrendingUp",
+    name: L("Profit Calculator", "লাভ ক্যালকুলেটর"),
+    description: L("Calculate profit and margin.", "লাভ ও मार्जিন হিসাব।"),
+    inputSchema: [
+      { name: "cost", label: L("Cost", "খরচ"), type: "number", required: true },
+      { name: "price", label: L("Selling Price", "विक্রয় দাম"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const c = Number(input.cost), p = Number(input.price);
+      const profit = p - c; const pct = c === 0 ? 0 : (profit / c) * 100;
+      return { kind: "text", value: `Profit: ${profit.toFixed(2)}\nMargin: ${pct.toFixed(2)}%` };
+    },
+    seoTitle: L("Profit Calculator", "লাভ ক্যালকুলেটর"),
+    seoDescription: L("Calculate profit margin.", "লाभ margin হিসাব।"),
+    keywords: ["profit calculator"],
+    instructions: LI(["Enter cost and selling price."], ["খরচ ও विक্রয় দাম দিন।"]),
+    faqs: [],
+    related: ["margin-calculator"],
+  },
+  {
+    id: "margin-calculator", slug: "margin-calculator", category: "calculator", icon: "TrendingDown",
+    name: L("Margin Calculator", "মার্জিন ক্যালকুলেটর"),
+    description: L("Calculate profit margin from cost and price.", "খরচ ও দাম থেকে मार्जিন হিসাব।"),
+    inputSchema: [
+      { name: "cost", label: L("Cost", "খরচ"), type: "number", required: true },
+      { name: "price", label: L("Revenue", "রেভিনিউ"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const c = Number(input.cost), r = Number(input.price);
+      if (r === 0) return { kind: "text", value: "Revenue cannot be 0" };
+      const margin = ((r - c) / r) * 100;
+      return { kind: "text", value: `Margin: ${margin.toFixed(2)}%\nProfit: ${(r - c).toFixed(2)}` };
+    },
+    seoTitle: L("Margin Calculator", "মার্জিন ক্যালকুলেটর"),
+    seoDescription: L("Calculate profit margin.", "মার্জিন হিসাব করুন।"),
+    keywords: ["margin calculator"],
+    instructions: LI(["Enter cost and revenue."], ["খরচ ও রেভিনিউ দিন।"]),
+    faqs: [],
+    related: ["profit-calculator"],
+  },
+  {
+    id: "compound-interest-calculator", slug: "compound-interest-calculator", category: "calculator", icon: "TrendingUp",
+    name: L("Compound Interest Calculator", "চক্রবೃদ্ধি সুদ ক্যালকুলেটর"),
+    description: L("Calculate compound interest.", "চক্রবৃদ্ধি সুদ হিসাব।"),
+    inputSchema: [
+      { name: "principal", label: L("Principal", "মূলধন"), type: "number", required: true },
+      { name: "rate", label: L("Annual Rate %", "বার্ষিক রেট %"), type: "number", required: true },
+      { name: "years", label: L("Years", "বছর"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const P = Number(input.principal), rate = Number(input.rate), y = Number(input.years);
+      const A = P * Math.pow(1 + rate / 100, y);
+      return { kind: "text", value: `Amount: ${A.toFixed(2)}\nInterest: ${(A - P).toFixed(2)}` };
+    },
+    seoTitle: L("Compound Interest Calculator", "চক্রবৃদ্ধি সুদ ক্যালকুলেটর"),
+    seoDescription: L("Calculate compound interest.", "চক্রবৃদ্ধি সুদ হিসাব করুন।"),
+    keywords: ["compound interest calculator"],
+    instructions: LI(["Enter principal, rate, years."], ["মূলধন, রেট, বছর দিন।"]),
+    faqs: [],
+    related: ["simple-interest-calculator"],
+  },
+  {
+    id: "simple-interest-calculator", slug: "simple-interest-calculator", category: "calculator", icon: "Minus",
+    name: L("Simple Interest Calculator", "সহজ সুদ ক্যালকুলেটর"),
+    description: L("Calculate simple interest.", "সহজ সুদ হিসাব।"),
+    inputSchema: [
+      { name: "principal", label: L("Principal", "মূলধন"), type: "number", required: true },
+      { name: "rate", label: L("Annual Rate %", "বার্ষিক রেট %"), type: "number", required: true },
+      { name: "years", label: L("Years", "বছর"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const P = Number(input.principal), rate = Number(input.rate), y = Number(input.years);
+      const interest = (P * rate * y) / 100;
+      return { kind: "text", value: `Interest: ${interest.toFixed(2)}\nTotal: ${(P + interest).toFixed(2)}` };
+    },
+    seoTitle: L("Simple Interest Calculator", "সহজ সুদ ক্যালকুলেটর"),
+    seoDescription: L("Calculate simple interest.", "সহজ সুদ হিসাব করুন।"),
+    keywords: ["simple interest calculator"],
+    instructions: LI(["Enter principal, rate, years."], ["মূলধন, রেট, বছর দিন।"]),
+    faqs: [],
+    related: ["compound-interest-calculator"],
+  },
+  {
+    id: "salary-calculator", slug: "salary-calculator", category: "calculator", icon: "DollarSign",
+    name: L("Salary Calculator", "বেতন ক্যালকুলেটর"),
+    description: L("Calculate monthly/yearly salary from hourly rate.", "ঘন্টা ভর্তি থেকে বেতন হিসাব।"),
+    inputSchema: [
+      { name: "hourly", label: L("Hourly Rate", "ঘন্টা ভর্তি"), type: "number", required: true },
+      { name: "hours", label: L("Hours per Week", "সপ্তাহে ঘণ্টা"), type: "number", required: true },
+      { name: "weeks", label: L("Weeks per Year", "বছরে সপ্তাহ"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const h = Number(input.hourly), w = Number(input.hours), y = Number(input.weeks);
+      const weekly = h * w; const yearly = weekly * y;
+      return { kind: "text", value: `Weekly: ${weekly.toFixed(2)}\nYearly: ${yearly.toFixed(2)}\nMonthly: ${(yearly/12).toFixed(2)}` };
+    },
+    seoTitle: L("Salary Calculator", "বেতন ক্যালকুলেটর"),
+    seoDescription: L("Calculate salary.", "বেতন হিসাব করুন।"),
+    keywords: ["salary calculator"],
+    instructions: LI(["Enter hourly rate, hours, weeks."], ["ঘন্টা ভর্তি, ঘণ্টা, সপ্তাহ দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "time-calculator", slug: "time-calculator", category: "calculator", icon: "Clock",
+    name: L("Time Calculator", "সময় ক্যালকুলেটর"),
+    description: L("Add or subtract time.", "সময় যোগ বা বিয়োগ করুন।"),
+    inputSchema: [
+      { name: "hours", label: L("Hours", "ঘন্টা"), type: "number", required: true },
+      { name: "minutes", label: L("Minutes", "মিনিট"), type: "number", required: true },
+      { name: "op", label: L("Operation", "কার্যক্রম"), type: "select", options: [
+        { value: "double", label: L("×2", "×2") },
+        { value: "half", label: L("÷2", "÷2") },
+      ] },
+    ],
+    run: (input) => {
+      const h = Number(input.hours), m = Number(input.minutes);
+      let total = h * 60 + m;
+      total = input.op === "double" ? total * 2 : Math.floor(total / 2);
+      return { kind: "text", value: `Result: ${Math.floor(total / 60)}h ${total % 60}m` };
+    },
+    seoTitle: L("Time Calculator", "সময় ক্যালকুলেটর"),
+    seoDescription: L("Add or subtract time.", "সময় যোগ বিয়োগ করুন।"),
+    keywords: ["time calculator"],
+    instructions: LI(["Enter hours and minutes."], ["ঘন্টা ও মিনিট দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "electricity-bill-calculator", slug: "electricity-bill-calculator", category: "calculator", icon: "Zap",
+    name: L("Electricity Bill Calculator", "বিজলি বিল ক্যালকুলেটর"),
+    description: L("Estimate electricity cost from power and hours.", "বিদ্যুতির বিল অনুমান করুন।"),
+    inputSchema: [
+      { name: "power", label: L("Power (W)", "পাওয়ার (W)"), type: "number", required: true },
+      { name: "hours", label: L("Hours per Day", "দিনে ঘণ্টা"), type: "number", required: true },
+      { name: "days", label: L("Days", "দিন"), type: "number", required: true },
+      { name: "rate", label: L("Rate per kWh", "প্রতি কিলোવાટ দাম"), type: "number", required: true },
+    ],
+    run: (input) => {
+      const p = Number(input.power), h = Number(input.hours), d = Number(input.days), r = Number(input.rate);
+      const kwh = (p * h * d) / 1000;
+      return { kind: "text", value: `Energy: ${kwh.toFixed(2)} kWh\nCost: ${(kwh * r).toFixed(2)}` };
+    },
+    seoTitle: L("Electricity Bill Calculator", "বিজলি বিল ক্যালকুলেটর"),
+    seoDescription: L("Estimate electricity cost.", "বিজলি বিল অনুমান করুন।"),
+    keywords: ["electricity bill calculator"],
+    instructions: LI(["Enter power, hours, days, rate."], ["পাওয়ার, ঘণ্টা, দিন, দাম দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "meta-tag-analyzer", slug: "meta-tag-analyzer", category: "seo", icon: "Search",
+    name: L("Meta Tag Analyzer", "মেটা ট্যাগ বিশ্লেষক"),
+    description: L("Analyze HTML meta tags locally.", "অনলাইনে মেটা ট্যাগ বিশ্লেষণ করুন।"),
+    inputSchema: [{ name: "html", label: L("HTML", "HTML"), type: "textarea", required: true }],
+    run: (input) => {
+      const html = String(input.html || "");
+      const title = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+      const desc = html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i);
+      const report = [
+        title ? `Title: ${title[1].trim()} (${title[1].length} chars)` : "Missing <title>",
+        desc ? `Description: ${desc[1].trim()} (${desc[1].length} chars)` : "Missing meta description",
+      ];
+      return { kind: "text", value: report.join("\n") };
+    },
+    seoTitle: L("Meta Tag Analyzer", "মেটা ট্যাগ বিশ্লেষক"),
+    seoDescription: L("Analyze meta tags.", "মেটা ট্যাগ বিশ্লেষণ করুন।"),
+    keywords: ["meta tag analyzer"],
+    instructions: LI(["Paste HTML."], ["HTML পেস্ট করুন।"]),
+    faqs: [],
+    related: ["meta-tag-generator"],
+  },
+  {
+    id: "schema-markup-generator", slug: "schema-markup-generator", category: "seo", icon: "Code",
+    name: L("Schema Markup Generator", "স্কিমা মার্কাপ জেনারেটর"),
+    description: L("Generate JSON-LD WebPage schema locally.", "JSON-LD WebPage স্কিমা তৈরি করুন।"),
+    inputSchema: [
+      { name: "name", label: L("Name", "নাম"), type: "text", required: true },
+      { name: "url", label: L("URL", "URL"), type: "text", required: true },
+      { name: "description", label: L("Description", "বিবরণ"), type: "text", required: true },
+    ],
+    run: (input) => {
+      const schema = { "@context": "https://schema.org", "@type": "WebPage", name: input.name, url: input.url, description: input.description };
+      return { kind: "json", value: JSON.stringify(schema, null, 2) };
+    },
+    seoTitle: L("Schema Markup Generator", "স্কিমা মার্কাপ জেনারেটর"),
+    seoDescription: L("Generate schema markup.", "স্কিমা মার্কাপ তৈরি করুন।"),
+    keywords: ["schema markup generator"],
+    instructions: LI(["Enter details."], ["বিবরণ দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "open-graph-generator", slug: "open-graph-generator", category: "seo", icon: "Share2",
+    name: L("Open Graph Generator", "ওপেন গ্রাফ জেনারেটর"),
+    description: L("Generate Open Graph meta tags.", "ওপেন গ্রাফ মেটা ট্যাগ তৈরি করুন।"),
+    inputSchema: [
+      { name: "title", label: L("Title", "শিরোনাম"), type: "text", required: true },
+      { name: "description", label: L("Description", "বিবরণ"), type: "textarea", required: true },
+      { name: "image", label: L("Image URL", "ছবি URL"), type: "text" },
+    ],
+    run: (input) => {
+      let out = `<meta property="og:title" content="${input.title}">\n<meta property="og:description" content="${input.description}">\n<meta property="og:type" content="website">`;
+      if (input.image) out += `\n<meta property="og:image" content="${input.image}">`;
+      return { kind: "text", value: out };
+    },
+    seoTitle: L("Open Graph Generator", "ওপেন গ্রাফ জেনারেটর"),
+    seoDescription: L("Generate Open Graph tags.", "ওপেন গ্রাফ ট্যাগ তৈরি করুন।"),
+    keywords: ["open graph generator"],
+    instructions: LI(["Enter title and description."], ["শিরোনাম ও বিবরণ দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "keyword-density-checker", slug: "keyword-density-checker", category: "seo", icon: "BarChart",
+    name: L("Keyword Density Checker", "কিওয়ার্ড ঘনত্ব পরীক্ষক"),
+    description: L("Calculate keyword density from text.", "টেক্সট থেকে কিওয়ার্ড ঘনত্ব গণনা করুন।"),
+    inputSchema: [
+      { name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true },
+      { name: "keyword", label: L("Keyword", "কিওয়ার্ড"), type: "text", required: true },
+    ],
+    run: (input) => {
+      const t = String(input.text || "").toLowerCase();
+      const k = String(input.keyword || "").toLowerCase();
+      const words = t.match(/\b\w+\b/g) || [];
+      const count = t.split(k).length - 1;
+      const density = words.length ? ((count / words.length) * 100).toFixed(2) : "0.00";
+      return { kind: "text", value: `Keyword: ${k}\nOccurrences: ${count}\nTotal words: ${words.length}\nDensity: ${density}%` };
+    },
+    seoTitle: L("Keyword Density Checker", "কিওয়ার্ড ঘনত্ব পরীক্ষক"),
+    seoDescription: L("Check keyword density.", "কিওয়ার্ড ঘনত্ব পরীক্ষা করুন।"),
+    keywords: ["keyword density checker"],
+    instructions: LI(["Paste text and keyword."], ["টেক্সট ও কিওয়ার্ড পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "hreflang-generator", slug: "hreflang-generator", category: "seo", icon: "Globe",
+    name: L("Hreflang Generator", "হ্রেফল্যাঙ জেনারেটর"),
+    description: L("Generate hreflang tags for bilingual pages.", "দ্বিভাষিক পৃষ্ঠার জন্য হ্রেফল্যাঙ ট্যাগ তৈরি করুন।"),
+    inputSchema: [
+      { name: "url", label: L("URL", "URL"), type: "text", required: true },
+      { name: "lang", label: L("Language", "ভাষা"), type: "select", options: [
+        { value: "en", label: L("English", "ইংরেজি") },
+        { value: "bn", label: L("Bengali", "বাংলা") },
+        { value: "x-default", label: L("Default", "ডিফল্ট") },
+      ] },
+    ],
+    run: (input) => {
+      return { kind: "text", value: `<link rel="alternate" hreflang="${input.lang}" href="${input.url}">` };
+    },
+    seoTitle: L("Hreflang Generator", "হ্রেফল্যাঙ জেনারেটর"),
+    seoDescription: L("Generate hreflang tags.", "হ্রেফল্যাঙ ট্যাগ তৈরি করুন।"),
+    keywords: ["hreflang generator"],
+    instructions: LI(["Enter URL and language."], ["URL ও ভাষা দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "redirect-checker", slug: "redirect-checker", category: "seo", icon: "Link",
+    name: L("Redirect Checker", "রিডাইরেক্ট চেকার"),
+    description: L("List redirect targets from input (local only, no external fetch).", "URL তালিকা লোকালি চেক করুন।"),
+    inputSchema: [{ name: "urls", label: L("URLs (one per line)", "URL (প্রতি লাইনে একটি)"), type: "textarea", required: true }],
+    run: (input) => {
+      const urls = String(input.urls || "").split(/\n/).filter(Boolean);
+      return { kind: "text", value: urls.map((u) => `${u} → (local placeholder, no external fetch)`).join("\n") };
+    },
+    seoTitle: L("Redirect Checker", "রিডাইরেক্ট চেকার"),
+    seoDescription: L("Check redirects locally.", "রিডাইরেক্ট লোকালি চেক করুন।"),
+    keywords: ["redirect checker"],
+    instructions: LI(["Paste URLs."], ["URL পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "heading-structure-checker", slug: "heading-structure-checker", category: "seo", icon: "List",
+    name: L("Heading Structure Checker", "হেডিং কাঠামো চেকার"),
+    description: L("Analyze heading hierarchy from HTML.", "HTML থেকে হেডিং শ্রেণিবিন্যাস বিশ্লেষণ করুন।"),
+    inputSchema: [{ name: "html", label: L("HTML", "HTML"), type: "textarea", required: true }],
+    run: (input) => {
+      const html = String(input.html || "");
+      const heads = [...html.matchAll(/<h([1-6])[^>]*>([\s\S]*?)<\/h\1>/gi)];
+      const lines = heads.map((m) => `H${m[1]}: ${m[2].replace(/<[^>]*>/g, "").trim()}`);
+      return { kind: "text", value: lines.length ? lines.join("\n") : "No headings found" };
+    },
+    seoTitle: L("Heading Structure Checker", "হেডিং কাঠামো চেকার"),
+    seoDescription: L("Check heading structure.", "হেডিং কাঠামো পরীক্ষা করুন।"),
+    keywords: ["heading structure checker"],
+    instructions: LI(["Paste HTML."], ["HTML পেস্ট করুন।"]),
+    faqs: [],
+    related: ["meta-tag-analyzer"],
+  },
+  {
+    id: "image-alt-text-checker", slug: "image-alt-text-checker", category: "seo", icon: "Image",
+    name: L("Image Alt Text Checker", "ছবি অল্ট টেক্সট চেকার"),
+    description: L("Find images missing alt attributes.", "অলট গুণ ছবি খুঁজুন।"),
+    inputSchema: [{ name: "html", label: L("HTML", "HTML"), type: "textarea", required: true }],
+    run: (input) => {
+      const html = String(input.html || "");
+      const imgs = [...html.matchAll(/<img[^>]*>/gi)];
+      const missing = imgs.filter((m) => !/alt\s*=/i.test(m[0]));
+      return { kind: "text", value: `Total images: ${imgs.length}\nMissing alt: ${missing.length}` };
+    },
+    seoTitle: L("Image Alt Text Checker", "ছবি অল্ট টেক্সট চেকার"),
+    seoDescription: L("Check image alt text.", "ছবির অল্ট টেক্সট পরীক্ষা করুন।"),
+    keywords: ["image alt text checker"],
+    instructions: LI(["Paste HTML."], ["HTML পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "structured-data-validator", slug: "structured-data-validator", category: "seo", icon: "Code",
+    name: L("Structured Data Validator", "স্ট্রাকচার্ড ডেটা ভ্যালিডেটর"),
+    description: L("Validate JSON-LD locally.", "JSON-LD লোকালি ভ্যালিডেট করুন।"),
+    inputSchema: [{ name: "json", label: L("JSON-LD", "JSON-LD"), type: "textarea", required: true }],
+    run: (input) => {
+      try {
+        const parsed = JSON.parse(String(input.json || ""));
+        if (!parsed["@context"] || !parsed["@type"]) return { kind: "text", value: "Valid JSON, but missing @context or @type" };
+        return { kind: "text", value: `Valid schema: ${parsed["@type"]}` };
+      } catch { return { kind: "text", value: "Invalid JSON" }; }
+    },
+    seoTitle: L("Structured Data Validator", "স্ট্রাকচার্ড ডেটা ভ্যালিডেটর"),
+    seoDescription: L("Validate structured data.", "স্ট্রাকচার্ড ডেটা ভ্যালিডেট করুন।"),
+    keywords: ["structured data validator"],
+    instructions: LI(["Paste JSON-LD."], ["JSON-LD পেস্ট করুন।"]),
+    faqs: [],
+    related: ["schema-markup-generator"],
+  },
+  {
+    id: "youtube-title-generator", slug: "youtube-title-generator", category: "social", icon: "Play",
+    name: L("YouTube Title Generator", "ইউটিউব শিরোনাম জেনারেটর"),
+    description: L("Generate YouTube title ideas from a topic.", "বিষয় থেকে ইউটিউব শিরোনাম আইডিয়া তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: (input) => {
+      const t = String(input.topic || "");
+      const ideas = [
+        `${t}: Complete Guide for Beginners`,
+        `How to ${t} - Step by Step`,
+        `${t} Explained in 10 Minutes`,
+        `Top 10 ${t} Tips You Need to Know`,
+      ];
+      return { kind: "text", value: ideas.join("\n") };
+    },
+    seoTitle: L("YouTube Title Generator", "ইউটিউব শিরোনাম জেনারেটর"),
+    seoDescription: L("Generate YouTube titles.", "ইউটিউব শিরোনাম তৈরি করুন।"),
+    keywords: ["youtube title generator"],
+    instructions: LI(["Enter a topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "youtube-hashtag-generator", slug: "youtube-hashtag-generator", category: "social", icon: "Hash",
+    name: L("YouTube Hashtag Generator", "ইউটিউব হ্যাশট্যাগ জেনারেটর"),
+    description: L("Generate YouTube hashtags from keywords.", "কিওয়ার্ড থেকে ইউটিউব হ্যাশট্যাগ তৈরি করুন।"),
+    inputSchema: [{ name: "keywords", label: L("Keywords", "কিওয়ার্ড"), type: "text", required: true }],
+    run: (input) => {
+      const tags = String(input.keywords || "").split(/[\s,]+/).filter(Boolean).map((w) => "#" + w.replace(/[^a-zA-Z0-9]/g, ""));
+      return { kind: "text", value: tags.join(" ") };
+    },
+    seoTitle: L("YouTube Hashtag Generator", "ইউটিউব হ্যাশট্যাগ জেনারেটর"),
+    seoDescription: L("Generate YouTube hashtags.", "ইউটিউব হ্যাশট্যাগ তৈরি করুন।"),
+    keywords: ["youtube hashtag generator"],
+    instructions: LI(["Enter keywords."], ["কিওয়ার্ড লিখুন।"]),
+    faqs: [],
+    related: ["hashtag-generator"],
+  },
+  {
+    id: "social-caption-generator", slug: "social-caption-generator", category: "social", icon: "Edit",
+    name: L("Social Caption Generator", "সোশ্যাল ক্যাপশন জেনারেটর"),
+    description: L("Generate social media captions.", "সোশ্যাল মিডিয়া ক্যাপশন তৈরি করুন।"),
+    inputSchema: [
+      { name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true },
+      { name: "platform", label: L("Platform", "প্ল্যাটফর্ম"), type: "select", options: [
+        { value: "instagram", label: L("Instagram", "ইনস্টাগ্রাম") },
+        { value: "twitter", label: L("Twitter", "টুইটার") },
+        { value: "facebook", label: L("Facebook", "ফেসবুক") },
+      ] },
+    ],
+    run: (input) => {
+      const t = String(input.topic || "");
+      const p = input.platform || "instagram";
+      const base = `Check out ${t} 🔥`;
+      const tags = p === "twitter" ? "" : " #social #content #creator";
+      return { kind: "text", value: base + tags };
+    },
+    seoTitle: L("Social Caption Generator", "সোশ্যাল ক্যাপশন জেনারেটর"),
+    seoDescription: L("Generate social captions.", "সোশ্যাল ক্যাপশন তৈরি করুন।"),
+    keywords: ["social caption generator"],
+    instructions: LI(["Enter topic and platform."], ["বিষয় ও প্ল্যাটফর্ম দিন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "instagram-bio-generator", slug: "instagram-bio-generator", category: "social", icon: "User",
+    name: L("Instagram Bio Generator", "ইনস্টাগ্রাম বায়ো জেনারেটর"),
+    description: L("Generate Instagram bio ideas.", "ইনস্টাগ্রাম বায়ো আইডিয়া তৈরি করুন।"),
+    inputSchema: [{ name: "role", label: L("Role / Profession", "পদ / পেশা"), type: "text", required: true }],
+    run: (input) => {
+      const r = String(input.role || "");
+      return { kind: "text", value: `${r} ✨ | Creating content daily | DM for collabs` };
+    },
+    seoTitle: L("Instagram Bio Generator", "ইনস্টাগ্রাম বায়ো জেনারেটর"),
+    seoDescription: L("Generate Instagram bio.", "ইনস্টাগ্রাম বায়ো তৈরি করুন।"),
+    keywords: ["instagram bio generator"],
+    instructions: LI(["Enter role or profession."], ["পদ বা পেশা লিখুন।"]),
+    faqs: [],
+    related: ["bio-generator"],
+  },
+  {
+    id: "facebook-post-formatter", slug: "facebook-post-formatter", category: "social", icon: "Facebook",
+    name: L("Facebook Post Formatter", "ফেসবুক পোস্ট ফরম্যাটার"),
+    description: L("Format text for a Facebook post.", "ফেসবুক পোস্টের জন্য টেক্সট ফরম্যাট করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: (input) => {
+      const t = String(input.text || "");
+      return { kind: "text", value: `📢 ${t.trim()}\n\n#Facebook #Post #Share` };
+    },
+    seoTitle: L("Facebook Post Formatter", "ফেসবুক পোস্ট ফরম্যাটার"),
+    seoDescription: L("Format Facebook posts.", "ফেসবুক পোস্ট ফরম্যাট করুন।"),
+    keywords: ["facebook post formatter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "social-character-counter", slug: "social-character-counter", category: "social", icon: "Type",
+    name: L("Social Character Counter", "সোশ্যাল ক্যারেক্টার কাউন্টার"),
+    description: L("Count characters for social platforms.", "সোশ্যাল প্ল্যাটফর্মের ক্যারেক্টার গণনা করুন।"),
+    inputSchema: [
+      { name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true },
+      { name: "platform", label: L("Platform", "প্ল্যাটফর্ম"), type: "select", options: [
+        { value: "twitter", label: L("Twitter (280)", "টুইটার (280)") },
+        { value: "instagram", label: L("Instagram (2200)", "ইনস্টাগ্রাম (2200)") },
+        { value: "facebook", label: L("Facebook (63206)", "ফেসবুক (63206)") },
+      ] },
+    ],
+    run: (input) => {
+      const t = String(input.text || "");
+      const len = t.length;
+      const limits: Record<string, number> = { twitter: 280, instagram: 2200, facebook: 63206 };
+      const limit = limits[input.platform] || 280;
+      return { kind: "text", value: `Characters: ${len}/${limit}\nRemaining: ${Math.max(0, limit - len)}` };
+    },
+    seoTitle: L("Social Character Counter", "সোশ্যাল ক্যারেক্টার কাউন্টার"),
+    seoDescription: L("Count social characters.", "সোশ্যাল ক্যারেক্টার গণনা করুন।"),
+    keywords: ["social character counter"],
+    instructions: LI(["Paste text."], ["টেক্সট পেস্ট করুন।"]),
+    faqs: [],
+    related: ["character-counter"],
+  },
+  {
+    id: "video-aspect-ratio-calculator", slug: "video-aspect-ratio-calculator", category: "social", icon: "Maximize2",
+    name: L("Video Aspect Ratio Calculator", "ভিডিও অ্যাসপেক্ট রেশন ক্যালকুলেটর"),
+    description: L("Calculate video dimensions from aspect ratio.", "অ্যাসপেক্ট রেশন থেকে ভিডিও মাপ হিসাব করুন।"),
+    inputSchema: [
+      { name: "width", label: L("Width", "প্রস্থ"), type: "number", required: true },
+      { name: "ratio", label: L("Aspect Ratio", "অ্যাসপেক্ট রেশন"), type: "select", options: [
+        { value: "16:9", label: L("16:9", "16:9") }, { value: "9:16", label: L("9:16", "9:16") }, { value: "1:1", label: L("1:1", "1:1") }, { value: "4:3", label: L("4:3", "4:3") },
+      ] },
+    ],
+    run: (input) => {
+      const w = Number(input.width);
+      const [a, b] = String(input.ratio).split(":").map(Number);
+      const h = (w * b) / a;
+      return { kind: "text", value: `Width: ${w}\nHeight: ${h.toFixed(2)}\nRatio: ${a}:${b}` };
+    },
+    seoTitle: L("Video Aspect Ratio Calculator", "ভিডিও অ্যাসপেক্ট রেশন ক্যালকুলেটর"),
+    seoDescription: L("Calculate video aspect ratio.", "ভিডিও অ্যাসপেক্ট রেশন হিসাব করুন।"),
+    keywords: ["video aspect ratio calculator"],
+    instructions: LI(["Enter width and ratio."], ["প্রস্থ ও রেশন দিন।"]),
+    faqs: [],
+    related: ["thumbnail-dimension-guide"],
+  },
+  {
+    id: "ai-text-rewriter", slug: "ai-text-rewriter", category: "ai", icon: "Edit",
+    name: L("AI Text Rewriter", "AI টেক্সট রাইটার"),
+    description: L("Rewrite text using AI provider (requires AI_API_KEY).", "AI প্রোভাইডার ব্যবহার করে টেক্সট রাইট করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Rewrite: ${input.text}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Text Rewriter", "AI টেক্সট রাইটার"),
+    seoDescription: L("Rewrite text with AI.", "AI দিয়ে টেক্সট রাইট করুন।"),
+    keywords: ["ai text rewriter"],
+    instructions: LI(["Enter text and run."], ["টেক্সট লিখে চালান।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-caption-generator", slug: "ai-caption-generator", category: "ai", icon: "Edit",
+    name: L("AI Caption Generator", "AI ক্যাপশন জেনারেটর"),
+    description: L("Generate captions using AI provider.", "AI প্রোভাইডার দিয়ে ক্যাপশন তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Caption: ${input.topic}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Caption Generator", "AI ক্যাপশন জেনারেটর"),
+    seoDescription: L("Generate captions with AI.", "AI দিয়ে ক্যাপশন তৈরি করুন।"),
+    keywords: ["ai caption generator"],
+    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-product-description-generator", slug: "ai-product-description-generator", category: "ai", icon: "Package",
+    name: L("AI Product Description Generator", "AI প্রোডাক্ট ডেসক্রিপশন জেনারেটর"),
+    description: L("Generate product descriptions using AI provider.", "AI প্রোভাইডার দিয়ে প্রোডাক্ট ডেসক্রিপশন তৈরি করুন।"),
+    inputSchema: [{ name: "product", label: L("Product", "প্রোডাক্ট"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Product description: ${input.product}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Product Description Generator", "AI প্রোডাক্ট ডেসক্রিপশন জেনারেটর"),
+    seoDescription: L("Generate product descriptions with AI.", "AI দিয়ে প্রোডাক্ট ডেসক্রিপশন তৈরি করুন।"),
+    keywords: ["ai product description generator"],
+    instructions: LI(["Enter product name."], ["প্রোডাক্টের নাম লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-blog-outline-generator", slug: "ai-blog-outline-generator", category: "ai", icon: "FileText",
+    name: L("AI Blog Outline Generator", "AI ব্লগ আউটলাইন জেনারেটর"),
+    description: L("Generate blog outlines using AI provider.", "AI প্রোভাইডার দিয়ে ব্লগ আউটলাইন তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Blog outline: ${input.topic}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Blog Outline Generator", "AI ব্লগ আউটলাইন জেনারেটর"),
+    seoDescription: L("Generate blog outlines with AI.", "AI দিয়ে ব্লগ আউটলাইন তৈরি করুন।"),
+    keywords: ["ai blog outline generator"],
+    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-email-draft-generator", slug: "ai-email-draft-generator", category: "ai", icon: "Mail",
+    name: L("AI Email Draft Generator", "AI ইমেইল ড্রাফট জেনারেটর"),
+    description: L("Generate email drafts using AI provider.", "AI প্রোভাইডার দিয়ে ইমেইল ড্রাফট তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Email draft: ${input.topic}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Email Draft Generator", "AI ইমেইল ড্রাফট জেনারেটর"),
+    seoDescription: L("Generate email drafts with AI.", "AI দিয়ে ইমেইল ড্রাফট তৈরি করুন।"),
+    keywords: ["ai email draft generator"],
+    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-title-generator", slug: "ai-title-generator", category: "ai", icon: "Type",
+    name: L("AI Title Generator", "AI টাইটেল জেনারেটর"),
+    description: L("Generate titles using AI provider.", "AI প্রোভাইডার দিয়ে টাইটেল তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Titles: ${input.topic}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Title Generator", "AI টাইটেল জেনারেটর"),
+    seoDescription: L("Generate titles with AI.", "AI দিয়ে টাইটেল তৈরি করুন।"),
+    keywords: ["ai title generator"],
+    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-hashtag-assistant", slug: "ai-hashtag-assistant", category: "ai", icon: "Hash",
+    name: L("AI Hashtag Assistant", "AI হ্যাশট্যাগ অ্যাসিস্ট্যান্ট"),
+    description: L("Generate hashtags using AI provider.", "AI প্রোভাইডার দিয়ে হ্যাশট্যাগ তৈরি করুন।"),
+    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Hashtags: ${input.topic}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Hashtag Assistant", "AI হ্যাশট্যাগ অ্যাসিস্ট্যান্ট"),
+    seoDescription: L("Generate hashtags with AI.", "AI দিয়ে হ্যাশট্যাগ তৈরি করুন।"),
+    keywords: ["ai hashtag assistant"],
+    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
+  {
+    id: "ai-summary-generator", slug: "ai-summary-generator", category: "ai", icon: "Sparkles",
+    name: L("AI Summary Generator", "AI সামারি জেনারেটর"),
+    description: L("Generate summaries using AI provider.", "AI প্রোভাইডার দিয়ে সামারি তৈরি করুন।"),
+    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    run: async (input) => {
+      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Summarize: ${input.text}` }) });
+      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
+      const data = await res.json();
+      return { kind: "text", value: data.result || "No result" };
+    },
+    seoTitle: L("AI Summary Generator", "AI সামারি জেনারেটর"),
+    seoDescription: L("Generate summaries with AI.", "AI দিয়ে সামারি তৈরি করুন।"),
+    keywords: ["ai summary generator"],
+    instructions: LI(["Enter text."], ["টেক্সট লিখুন।"]),
+    faqs: [],
+    related: [],
+  },
 ];
 

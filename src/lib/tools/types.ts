@@ -8,7 +8,7 @@ export type ToolFieldOption = { value: string; label: LocalizedText };
 export type ToolField = {
   name: string;
   label: LocalizedText;
-  type: "text" | "textarea" | "number" | "select" | "checkbox" | "file" | "color";
+  type: "text" | "textarea" | "number" | "select" | "checkbox" | "file" | "color" | "date";
   placeholder?: LocalizedText;
   options?: ToolFieldOption[];
   accept?: string;

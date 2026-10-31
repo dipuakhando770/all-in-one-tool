@@ -42,6 +42,7 @@ export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Local
             {field.type === "select" && <select className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2" value={values[field.name] || field.options?.[0]?.value} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))}>{field.options?.map((o) => <option key={o.value} value={o.value}>{o.label[locale]}</option>)}</select>}
             {field.type === "checkbox" && <input type="checkbox" checked={!!values[field.name]} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.checked }))} />}
             {field.type === "color" && <input type="color" className="h-10 w-20 rounded border border-[var(--border)]" value={values[field.name] || "#000000"} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))} />}
+            {field.type === "date" && <input type="date" className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2" value={values[field.name] || ""} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))} />}
             {field.type === "file" && <input type="file" accept={field.accept} className="w-full" onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.files?.[0] }))} />}
             {field.help && <p className="text-xs text-[var(--foreground)]/60">{field.help[locale]}</p>}
           </div>

@@ -3,8 +3,8 @@ import type { D1Database } from "./types";
 export async function getDb(): Promise<D1Database | null> {
   // Cloudflare Workers (OpenNext)
   try {
-    // Optional Cloudflare adapter; loaded at runtime in Workers
-    const mod: any = await new Function("m", "return import(m)")("@opennextjs/cloudflare");
+    // @ts-ignore - provided by OpenNext Cloudflare adapter at runtime
+    const mod: any = await import("@opennextjs/cloudflare");
     if (mod?.getCloudflareContext) {
       const ctx = mod.getCloudflareContext();
       const db = ctx?.env?.DB;

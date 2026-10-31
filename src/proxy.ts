@@ -26,11 +26,12 @@ export function proxy(req: NextRequest) {
       }
     }
   }
-  // CSRF: check origin for state-changing requests
+  res.headers.set("Content-Security-Policy", "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'");
+  // CSRF: require Origin match for state-changing API requests
   if (["POST", "PUT", "PATCH", "DELETE"].includes(req.method) && req.nextUrl.pathname.startsWith("/api/")) {
     const origin = req.headers.get("origin");
     const host = req.headers.get("host");
-    if (origin && host && !origin.includes(host)) {
+    if (!origin || !host || !origin.includes(host)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
   }

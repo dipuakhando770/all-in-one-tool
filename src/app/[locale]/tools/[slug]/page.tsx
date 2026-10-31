@@ -34,7 +34,7 @@ export default async function ToolPage({ params }: { params: Promise<{ locale: s
       <p className="mt-2 text-[var(--foreground)]/70">{tool.description[l]}</p>
 
       <div className="mt-6">
-        <ToolRunner tool={tool} locale={l} dict={dict} />
+        <ToolRunner slug={slug} locale={l} dict={dict} />
       </div>
 
       <section className="mt-10">

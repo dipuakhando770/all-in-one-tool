@@ -11,7 +11,7 @@
     {
       "binding": "DB",
       "database_name": "nasir-tools-db",
-      "database_id": "REPLACE_WITH_D1_DATABASE_ID",
+      "database_id": "093732aa-679f-45da-aa35-08bdc595ae43",
       "migrations_dir": "migrations"
     }
   ],

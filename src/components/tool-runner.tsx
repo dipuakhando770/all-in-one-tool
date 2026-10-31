@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
-import type { ToolDefinition } from "@/lib/tools/types";
+import { getToolBySlug } from "@/tools/registry";
 import type { Locale } from "@/lib/i18n";
 
-export function ToolRunner({ tool, locale, dict }: { tool: ToolDefinition; locale: Locale; dict: any }) {
+export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Locale; dict: any }) {
+  const tool = getToolBySlug(slug)!;
   const [values, setValues] = useState<Record<string, any>>({});
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);

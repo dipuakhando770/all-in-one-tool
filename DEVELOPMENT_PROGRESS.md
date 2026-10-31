@@ -1,20 +1,22 @@
 # Development Progress
 
 ## Completed
-- Phase 1: Project audit & documentation (PROJECT_PLAN, ARCHITECTURE, DATABASE_SCHEMA, DEVELOPMENT_PROGRESS).
-- Phase 2: Cloudflare compatibility scaffolding (wrangler.jsonc, migration layout, adapter notes).
+- Phase 1: Project audit & documentation.
+- Phase 2: Cloudflare compatibility fixed (OpenNext adapter installed, cf:build succeeds, dry-run succeeds).
 - Phase 3: D1 migration SQL for all required tables.
-- Phase 4: Authentication APIs and helpers (register/login/logout/password reset/profile/RBAC).
+- Phase 4: Authentication APIs and helpers.
 - Phase 5: User dashboard routes.
 - Phase 6: Admin dashboard routes (core).
 - Phase 7: Blog CMS (basic).
 - Phase 8: SEO management (metadata/redirects).
 - Phase 9: Analytics tracking endpoint.
-- Phase 10: Security headers/middleware/validation.
-- Phase 11: Tests (unit + smoke).
-- Phase 12: Deployment workflow + instructions.
+- Phase 10: Security headers/middleware/validation/CSP.
+- Phase 11: Tests (5 unit tests pass; typecheck passes; cf build passes).
+- Phase 12: Deployment workflow + Cloudflare fix report.
 
-## Pending / notes
-- OpenNext adapter package installation requires network; documented in deployment instructions.
-- D1 binding must be created in Cloudflare account before deploy.
-- E2E tests require running server; smoke tests included.
+## Remaining blockers
+- Real D1 database creation/binding/migration.
+- Cloudflare preview/runtime verification.
+- Integration/E2E tests.
+- Lint final run.
+- Performance/Lighthouse.

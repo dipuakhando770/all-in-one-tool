@@ -2,6 +2,11 @@ import type { ToolDefinition } from "@/lib/tools/types";
 import type { Locale } from "@/lib/i18n";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
+import * as pdfjsLib from "pdfjs-dist";
+
+if (typeof window !== "undefined") {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+}
 
 const L = (en: string, bn: string): Record<Locale, string> => ({ en, bn });
 const LI = (en: string[], bn: string[]): Record<Locale, string[]> => ({ en, bn });
@@ -225,6 +230,37 @@ export const pdfTools: ToolDefinition[] = [
     seoDescription: L("Split PDF to ZIP.", "PDF স্প্লিট টু ZIP।"),
     keywords: ["pdf split zip"],
     instructions: LI(["Upload PDF."], ["PDF আপলোড করুন।"]),
+    faqs: [], related: [],
+  },
+  {
+    id: "pdf-to-image", slug: "pdf-to-image", category: "pdf", icon: "Image",
+    name: L("PDF to Image", "PDF টু ইমেজ"),
+    description: L("Render a PDF page to an image.", "PDF পেজকে ছবিতে রেন্ডার।"),
+    inputSchema: [
+      { name: "file", label: L("PDF", "PDF"), type: "file", accept: "application/pdf", required: true },
+      { name: "page", label: L("Page Number", "পেজ নাম্বার"), type: "number", required: true, min: 1 },
+      { name: "scale", label: L("Scale", "স্কেল"), type: "number", min: 1, max: 4, step: 0.5 },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const buf = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+      const pageNum = Math.min(Math.max(1, Number(input.page) || 1), pdf.numPages);
+      const page = await pdf.getPage(pageNum);
+      const viewport = page.getViewport({ scale: Number(input.scale) || 2 });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d")!;
+      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+      const dataUrl = canvas.toDataURL("image/png");
+      return { kind: "image", value: dataUrl, filename: `page-${pageNum}.png` };
+    },
+    seoTitle: L("PDF to Image", "PDF টু ইমেজ"),
+    seoDescription: L("Render PDF page to image.", "PDF পেজকে ছবিতে রেন্ডার।"),
+    keywords: ["pdf to image"],
+    instructions: LI(["Upload PDF, set page and scale."], ["PDF আপলোড, পেজ ও স্কেল সেট করুন।"]),
     faqs: [], related: [],
   },
 ];

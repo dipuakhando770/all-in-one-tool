@@ -1,10 +1,14 @@
 "use client";
 import { useState } from "react";
 import { BatchFileUpload } from "@/components/batch-file-upload";
-import * as pdfjsLib from "pdfjs-dist";
+// pdfjs loaded dynamically
 
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+async function getPdfjs() {
+  const mod = await import("pdfjs-dist");
+  if (typeof window !== "undefined") {
+    mod.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${mod.version}/pdf.worker.min.mjs`;
+  }
+  return mod;
 }
 
 export function PdfPageSelector() {
@@ -20,6 +24,7 @@ export function PdfPageSelector() {
   const loadMoreThumbs = async () => {
     if (!file) return;
     const buf = await file.arrayBuffer();
+    const pdfjsLib = await getPdfjs();
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     const start = thumbnails.length + 1;
     const end = Math.min(pdf.numPages, start + 11);
@@ -46,6 +51,7 @@ export function PdfPageSelector() {
     setThumbnails([]);
     setSelected(new Set());
     const buf = await f.arrayBuffer();
+    const pdfjsLib = await getPdfjs();
     const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
     setPageCount(pdf.numPages);
     const thumbs: string[] = [];
@@ -116,6 +122,7 @@ export function PdfPageSelector() {
             setLoading(true);
             try {
               const buf = await file.arrayBuffer();
+              const pdfjsLib = await getPdfjs();
               const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
               if (effectivePages.length === 1) {
                 const page = await pdf.getPage(effectivePages[0]);

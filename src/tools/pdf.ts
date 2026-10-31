@@ -2,10 +2,14 @@ import type { ToolDefinition } from "@/lib/tools/types";
 import type { Locale } from "@/lib/i18n";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
-import * as pdfjsLib from "pdfjs-dist";
+// pdfjs loaded dynamically inside run() to avoid build-time issues
 
-if (typeof window !== "undefined") {
-  pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
+async function getPdfjs() {
+  const mod = await import("pdfjs-dist");
+  if (typeof window !== "undefined") {
+    mod.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${mod.version}/pdf.worker.min.mjs`;
+  }
+  return mod;
 }
 
 const L = (en: string, bn: string): Record<Locale, string> => ({ en, bn });
@@ -244,6 +248,7 @@ export const pdfTools: ToolDefinition[] = [
     run: async (input, _locale, onProgress) => {
       const file = input.file as File;
       if (!file) return { kind: "text", value: "No file" };
+      const pdfjsLib = await getPdfjs();
       const buf = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
       const total = pdf.numPages;

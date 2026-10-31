@@ -1,5 +1,6 @@
 import type { ToolDefinition } from "@/lib/tools/types";
 import type { Locale } from "@/lib/i18n";
+import { createZip } from "@/lib/zip";
 
 const L = (en: string, bn: string): Record<Locale, string> => ({ en, bn });
 const LI = (en: string[], bn: string[]): Record<Locale, string[]> => ({ en, bn });
@@ -31,20 +32,39 @@ export const imageTools: ToolDefinition[] = [
     name: L("Image Compressor", "ইমেজ কম্প্রেসর"),
     description: L("Compress images to reduce file size.", "ফাইল সাইজ কমাতে ছবি কম্প্রেস।"),
     inputSchema: [
-      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "file", label: L("Image(s)", "ছবি"), type: "file", accept: "image/*", required: true, multiple: true },
       { name: "quality", label: L("Quality (0.1-1)", "কোয়ালিটি (0.1-1)"), type: "number", min: 0.1, max: 1, step: 0.1 },
     ],
     run: async (input) => {
-      const file = input.file as File;
-      if (!file) return { kind: "text", value: "No file" };
-      const img = await fileToImage(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width; canvas.height = img.height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0);
+      const files = (Array.isArray(input.file) ? input.file : [input.file]).filter(Boolean) as File[];
+      if (!files.length) return { kind: "text", value: "No file" };
       const q = Number(input.quality) || 0.7;
-      const dataUrl = await canvasToDataURL(canvas, file.type || "image/jpeg", q);
-      return { kind: "image", value: dataUrl, filename: "compressed.jpg" };
+      if (files.length === 1) {
+        const file = files[0];
+        const img = await fileToImage(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = await canvasToDataURL(canvas, file.type || "image/jpeg", q);
+        return { kind: "image", value: dataUrl, filename: "compressed.jpg" };
+      }
+      const outputs: { name: string; data: Uint8Array }[] = [];
+      for (const file of files) {
+        const img = await fileToImage(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = await canvasToDataURL(canvas, file.type || "image/jpeg", q);
+        const base64 = dataUrl.split(",")[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        outputs.push({ name: `compressed-${file.name}`, data: bytes });
+      }
+      const url = await createZip(outputs.map((o) => ({ name: o.name, data: o.data })));
+      return { kind: "file", value: url, filename: "compressed.zip", mime: "application/zip" };
     },
     seoTitle: L("Image Compressor", "ইমেজ কম্প্রেসর"),
     seoDescription: L("Compress images online.", "অনলাইনে ছবি কম্প্রেস।"),
@@ -85,7 +105,7 @@ export const imageTools: ToolDefinition[] = [
     name: L("Image Format Converter", "ইমেজ ফরম্যাট কনভার্টার"),
     description: L("Convert image between PNG, JPG, WebP.", "PNG, JPG, WebP এর মধ্যে রূপান্তর।"),
     inputSchema: [
-      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "file", label: L("Image(s)", "ছবি"), type: "file", accept: "image/*", required: true, multiple: true },
       { name: "format", label: L("Format", "ফরম্যাট"), type: "select", options: [
         { value: "image/png", label: L("PNG", "PNG") },
         { value: "image/jpeg", label: L("JPG", "JPG") },
@@ -93,17 +113,37 @@ export const imageTools: ToolDefinition[] = [
       ] },
     ],
     run: async (input) => {
-      const file = input.file as File;
-      if (!file) return { kind: "text", value: "No file" };
-      const img = await fileToImage(file);
-      const canvas = document.createElement("canvas");
-      canvas.width = img.width; canvas.height = img.height;
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0);
+      const files = (Array.isArray(input.file) ? input.file : [input.file]).filter(Boolean) as File[];
+      if (!files.length) return { kind: "text", value: "No file" };
       const mime = String(input.format || "image/png");
-      const dataUrl = await canvasToDataURL(canvas, mime, 0.9);
       const ext = mime.split("/")[1];
-      return { kind: "image", value: dataUrl, filename: `converted.${ext}` };
+      if (files.length === 1) {
+        const file = files[0];
+        const img = await fileToImage(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = await canvasToDataURL(canvas, mime, 0.9);
+        return { kind: "image", value: dataUrl, filename: `converted.${ext}` };
+      }
+      const outputs: { name: string; data: Uint8Array }[] = [];
+      for (const file of files) {
+        const img = await fileToImage(file);
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width; canvas.height = img.height;
+        const ctx = canvas.getContext("2d")!;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = await canvasToDataURL(canvas, mime, 0.9);
+        const base64 = dataUrl.split(",")[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        const baseName = file.name.replace(/\.[^.]+$/, "");
+        outputs.push({ name: `${baseName}.${ext}`, data: bytes });
+      }
+      const url = await createZip(outputs.map((o) => ({ name: o.name, data: o.data })));
+      return { kind: "file", value: url, filename: "converted.zip", mime: "application/zip" };
     },
     seoTitle: L("Image Format Converter", "ইমেজ ফরম্যাট কনভার্টার"),
     seoDescription: L("Convert image formats.", "ছবি ফরম্যাট রূপান্তর।"),

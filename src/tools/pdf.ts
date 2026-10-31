@@ -238,7 +238,7 @@ export const pdfTools: ToolDefinition[] = [
     description: L("Render a PDF page to an image.", "PDF পেজকে ছবিতে রেন্ডার।"),
     inputSchema: [
       { name: "file", label: L("PDF", "PDF"), type: "file", accept: "application/pdf", required: true },
-      { name: "page", label: L("Page Number", "পেজ নাম্বার"), type: "number", required: true, min: 1 },
+      { name: "pages", label: L("Pages (e.g. 1-3 or all)", "পেজ (যেমন 1-3 বা all)"), type: "text", placeholder: L("all", "all") },
       { name: "scale", label: L("Scale", "স্কেল"), type: "number", min: 1, max: 4, step: 0.5 },
     ],
     run: async (input) => {
@@ -246,16 +246,50 @@ export const pdfTools: ToolDefinition[] = [
       if (!file) return { kind: "text", value: "No file" };
       const buf = await file.arrayBuffer();
       const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-      const pageNum = Math.min(Math.max(1, Number(input.page) || 1), pdf.numPages);
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: Number(input.scale) || 2 });
-      const canvas = document.createElement("canvas");
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      const ctx = canvas.getContext("2d")!;
-      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-      const dataUrl = canvas.toDataURL("image/png");
-      return { kind: "image", value: dataUrl, filename: `page-${pageNum}.png` };
+      const total = pdf.numPages;
+      const pagesSpec = String(input.pages || "all").trim().toLowerCase();
+      let pageNums: number[] = [];
+      if (pagesSpec === "all" || pagesSpec === "") {
+        pageNums = Array.from({ length: total }, (_, i) => i + 1);
+      } else if (pagesSpec.includes("-")) {
+        const [a, b] = pagesSpec.split("-").map((x) => Number(x));
+        const s = Math.max(1, a || 1);
+        const e = Math.min(total, b || total);
+        pageNums = Array.from({ length: e - s + 1 }, (_, i) => s + i);
+      } else {
+        pageNums = pagesSpec.split(",").map((x) => Number(x.trim())).filter((n) => n >= 1 && n <= total);
+      }
+      if (!pageNums.length) return { kind: "text", value: "No valid pages" };
+      const scale = Number(input.scale) || 2;
+      if (pageNums.length === 1) {
+        const page = await pdf.getPage(pageNums[0]);
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d")!;
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+        return { kind: "image", value: canvas.toDataURL("image/png"), filename: `page-${pageNums[0]}.png` };
+      }
+      const { createZip } = await import("@/lib/zip");
+      const outputs: { name: string; data: Uint8Array }[] = [];
+      for (const n of pageNums) {
+        const page = await pdf.getPage(n);
+        const viewport = page.getViewport({ scale });
+        const canvas = document.createElement("canvas");
+        canvas.width = viewport.width;
+        canvas.height = viewport.height;
+        const ctx = canvas.getContext("2d")!;
+        await page.render({ canvasContext: ctx, viewport, canvas }).promise;
+        const dataUrl = canvas.toDataURL("image/png");
+        const base64 = dataUrl.split(",")[1];
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        outputs.push({ name: `page-${n}.png`, data: bytes });
+      }
+      const url = await createZip(outputs.map((o) => ({ name: o.name, data: o.data })));
+      return { kind: "file", value: url, filename: "pages.zip", mime: "application/zip" };
     },
     seoTitle: L("PDF to Image", "PDF টু ইমেজ"),
     seoDescription: L("Render PDF page to image.", "PDF পেজকে ছবিতে রেন্ডার।"),

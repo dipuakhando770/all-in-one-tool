@@ -3,6 +3,7 @@ import { getDictionary } from "@/lib/dictionary";
 import { getToolBySlug } from "@/tools/registry";
 import { ToolRunner } from "@/components/tool-runner";
 import { BatchImageProcessor } from "@/components/batch-image-processor";
+import { PdfPageSelector } from "@/components/pdf-page-selector";
 import type { Locale } from "@/lib/i18n";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }) {
@@ -39,6 +40,8 @@ export default async function ToolPage({ params }: { params: Promise<{ locale: s
           <BatchImageProcessor mode="compress" />
         ) : slug === "image-format-converter" ? (
           <BatchImageProcessor mode="convert" />
+        ) : slug === "pdf-to-image" ? (
+          <PdfPageSelector />
         ) : (
           <ToolRunner slug={slug} locale={l} dict={dict} />
         )}

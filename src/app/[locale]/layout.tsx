@@ -14,6 +14,23 @@ export default async function LocaleLayout({ children, params }: { children: Rea
   const dict = await getDictionary(locale as Locale);
   return (
     <div lang={locale}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            name: "Nasir Tools",
+            url: "https://tools.nasirdigitalhub.com",
+            inLanguage: [locale],
+            potentialAction: {
+              "@type": "SearchAction",
+              target: `https://tools.nasirdigitalhub.com/${locale}/search?q={search_term_string}`,
+              "query-input": "required name=search_term_string",
+            },
+          }),
+        }}
+      />
       <Suspense fallback={<div />}>
         <Header locale={locale as Locale} dict={dict} />
       </Suspense>

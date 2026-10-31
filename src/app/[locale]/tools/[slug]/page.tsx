@@ -4,8 +4,8 @@ import { getToolBySlug } from "@/tools/registry";
 import { ToolRunner } from "@/components/tool-runner";
 import { BatchImageProcessor } from "@/components/batch-image-processor";
 import { PdfPageSelector } from "@/components/pdf-page-selector";
-import { PdfSplitter } from "@/components/pdf-splitter";
 import { PdfMerger } from "@/components/pdf-merger";
+import { PdfSplitter } from "@/components/pdf-splitter";
 import type { Locale } from "@/lib/i18n";
 
 export async function generateMetadata({ params }: { params: Promise<{ locale: string; slug: string }> }) {

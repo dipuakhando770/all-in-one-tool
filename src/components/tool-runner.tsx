@@ -20,8 +20,8 @@ export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Local
   const copy = async () => { if (result?.value) await navigator.clipboard.writeText(result.value); };
   const download = () => {
     if (!result?.value) return;
-    if (result.kind === "image") {
-      const a = document.createElement("a"); a.href = result.value; a.download = result.filename || "result.png"; a.click();
+    if (result.kind === "image" || result.kind === "file") {
+      const a = document.createElement("a"); a.href = result.value; a.download = result.filename || "result.bin"; a.click();
     } else {
       const blob = new Blob([result.value], { type: "text/plain" });
       const url = URL.createObjectURL(blob);
@@ -43,7 +43,7 @@ export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Local
             {field.type === "checkbox" && <input type="checkbox" checked={!!values[field.name]} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.checked }))} />}
             {field.type === "color" && <input type="color" className="h-10 w-20 rounded border border-[var(--border)]" value={values[field.name] || "#000000"} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))} />}
             {field.type === "date" && <input type="date" className="w-full rounded-lg border border-[var(--border)] bg-[var(--muted)] p-2" value={values[field.name] || ""} onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.value }))} />}
-            {field.type === "file" && <input type="file" accept={field.accept} className="w-full" onChange={(e) => setValues((v) => ({ ...v, [field.name]: e.target.files?.[0] }))} />}
+            {field.type === "file" && <input type="file" accept={field.accept} multiple={field.multiple} className="w-full" onChange={(e) => setValues((v) => ({ ...v, [field.name]: field.multiple ? Array.from(e.target.files || []) : e.target.files?.[0] }))} />}
             {field.help && <p className="text-xs text-[var(--foreground)]/60">{field.help[locale]}</p>}
           </div>
         ))}

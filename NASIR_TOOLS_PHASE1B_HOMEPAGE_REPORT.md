@@ -1,24 +1,26 @@
-# NASIR TOOLS PHASE 1B HOMEPAGE REPORT
+# NASIR TOOLS PHASE 1B HOMEPAGE COMPLETION REPORT
 
 ## Files changed
-- src/app/[locale]/page.tsx (homepage rewrite)
+- src/lib/icons.ts (comprehensive slug-based icon mapping)
+- src/app/[locale]/page.tsx (homepage redesign)
 - src/app/layout.tsx (favicon metadata)
-- public/favicon.svg (new brand icon)
+- public/favicon.svg (brand icon)
 
 ## Components
-- Uses existing ToolCard, SearchBox, BrandLogo.
-- Hero, popular, categories, featured, recently added, why, how it works, FAQ sections.
+- BrandLogo, ToolIcon, ToolCard (uses getToolIcon).
+- Homepage sections: hero, popular, categories, featured, recently added, why, how, FAQ.
 
-## Search
-- SearchBox navigates to /search?q=...
+## Icon mapping
+- 90+ slug-based icon overrides with lucide-react validation and Wrench fallback.
 
 ## Test results
 - TypeScript: PASS
 - Unit tests: not run this round
-- cf:build: not run
+- cf:build: not run (SWC environment issue)
 - ESLint: not run
 
-## Remaining work
-- Full brand identity (logo already created earlier).
-- Per-tool unique icons.
-- Homepage polish (animations, empty states).
+## Remaining issues
+- Lighthouse/browser testing not performed.
+- Full brand identity polish (logo already exists).
+- Favicon.ico / apple-touch-icon (only SVG).
+- Per-tool unique icons beyond mapped ones rely on registry icon field.

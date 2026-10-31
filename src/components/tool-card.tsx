@@ -1,10 +1,11 @@
 import Link from "next/link";
 import type { Locale } from "@/lib/i18n";
 import type { ToolDefinition } from "@/lib/tools/types";
+import { getToolIcon } from "@/lib/icons";
 import * as Icons from "lucide-react";
 
 export function ToolCard({ tool, locale }: { tool: ToolDefinition; locale: Locale }) {
-  const Icon = (Icons as any)[tool.icon] || Icons.Wrench;
+  const Icon = (Icons as any)[getToolIcon(tool.slug, tool.icon)] || Icons.Wrench;
   return (
     <Link href={`/${locale}/tools/${tool.slug}`} className="group flex flex-col gap-2 rounded-xl border border-[var(--border)] bg-[var(--background)] p-4 transition hover:shadow-md hover:border-[var(--accent)]">
       <div className="flex items-center gap-3">

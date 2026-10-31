@@ -1,0 +1,73 @@
+{
+  "nav": {
+    "home": "Home",
+    "allTools": "All Tools",
+    "categories": "Categories",
+    "popular": "Popular",
+    "newTools": "New Tools",
+    "blog": "Blog",
+    "search": "Search tools...",
+    "language": "Language",
+    "theme": "Theme",
+    "account": "Account",
+    "login": "Login",
+    "register": "Register",
+    "dashboard": "Dashboard",
+    "admin": "Admin"
+  },
+  "hero": {
+    "title": "Everyday Tools. All in One Place.",
+    "description": "Compress images, manage PDFs, calculate, convert, format and simplify your daily digital tasks with Nasir Tools.",
+    "explore": "Explore All Tools",
+    "popular": "Discover Popular Tools",
+    "searchPlaceholder": "Search any tool (e.g. image compressor, JSON formatter)..."
+  },
+  "sections": {
+    "popularTools": "Popular Tools",
+    "browseCategories": "Browse Categories",
+    "recentlyAdded": "Recently Added Tools",
+    "recommended": "Recommended Tools",
+    "why": "Why Nasir Tools",
+    "howItWorks": "How It Works",
+    "guides": "Helpful Guides",
+    "faq": "Frequently Asked Questions"
+  },
+  "why": [
+    "Free utility tools for everyone",
+    "No unnecessary registration required",
+    "Simple and fast to use",
+    "Mobile friendly design",
+    "Privacy-conscious processing",
+    "Regular improvements and new tools"
+  ],
+  "how": [
+    { "title": "Choose a tool", "desc": "Pick from hundreds of daily utilities." },
+    { "title": "Enter your data", "desc": "Upload or type your input." },
+    { "title": "Get results", "desc": "Copy, download or share instantly." }
+  ],
+  "footer": {
+    "about": "About Nasir Tools",
+    "allTools": "All Tools",
+    "popularTools": "Popular Tools",
+    "categories": "Categories",
+    "blog": "Blog",
+    "contact": "Contact",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "disclaimer": "Disclaimer",
+    "tagline": "Your Everyday Digital Toolkit."
+  },
+  "common": {
+    "run": "Run",
+    "reset": "Reset",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "download": "Download",
+    "loading": "Processing...",
+    "error": "Something went wrong.",
+    "noResults": "No tools found.",
+    "instructions": "How to use",
+    "faqs": "FAQs",
+    "relatedTools": "Related Tools"
+  }
+}

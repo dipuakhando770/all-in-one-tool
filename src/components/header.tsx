@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import { BrandLogo } from "@/components/brand-logo";
 import { usePathname } from "next/navigation";
 import { locales, type Locale } from "@/lib/i18n";
 import { useTheme } from "@/components/theme-provider";
@@ -18,10 +19,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: any }) {
   return (
     <header className="sticky top-0 z-50 border-b border-[var(--border)] bg-[var(--background)]/80 backdrop-blur">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
-        <Link href={`/${locale}`} className="flex items-center gap-2 font-bold text-lg">
-          <span className="rounded-lg bg-[var(--accent)] px-2 py-1 text-white">N</span>
-          <span>Nasir Tools</span>
-        </Link>
+        <BrandLogo locale={locale} compact />
         <nav className="hidden items-center gap-6 md:flex">
           <Link href={`/${locale}`}>{dict.nav.home}</Link>
           <Link href={`/${locale}/tools`}>{dict.nav.allTools}</Link>

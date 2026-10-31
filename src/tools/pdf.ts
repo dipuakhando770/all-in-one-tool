@@ -1,6 +1,7 @@
 import type { ToolDefinition } from "@/lib/tools/types";
 import type { Locale } from "@/lib/i18n";
 import { PDFDocument } from "pdf-lib";
+import JSZip from "jszip";
 
 const L = (en: string, bn: string): Record<Locale, string> => ({ en, bn });
 const LI = (en: string[], bn: string[]): Record<Locale, string[]> => ({ en, bn });
@@ -68,7 +69,7 @@ export const pdfTools: ToolDefinition[] = [
       if (!file) return { kind: "text", value: "No file" };
       const pdf = await PDFDocument.load(await fileToBytes(file));
       const deg = Number(input.degrees) || 90;
-      pdf.getPages().forEach((p) => p.setRotation({ type: "degrees", angle: (p.getRotation().angle + deg) % 360 } as any));
+      pdf.getPages().forEach((p) => p.setRotation({ type: "degrees", angle: (p.getRotation().angle + deg) % 360 } as any)); // eslint-disable-line @typescript-eslint/no-explicit-any
       const out = await pdf.save();
       return { kind: "file", value: await pdfToDataUrl(out), filename: "rotated.pdf", mime: "application/pdf" };
     },
@@ -173,6 +174,56 @@ export const pdfTools: ToolDefinition[] = [
     seoTitle: L("PDF Add Page Numbers", "PDF পেজ নাম্বার যোগ"),
     seoDescription: L("Add page numbers to PDF.", "PDF এ পেজ নাম্বার যোগ।"),
     keywords: ["pdf page numbers"],
+    instructions: LI(["Upload PDF."], ["PDF আপলোড করুন।"]),
+    faqs: [], related: [],
+  },
+  {
+    id: "pdf-merger", slug: "pdf-merger", category: "pdf", icon: "Combine",
+    name: L("PDF Merger", "PDF মার্জার"),
+    description: L("Merge multiple PDFs into one.", "একাধিক PDF একত্রিত করুন।"),
+    inputSchema: [{ name: "files", label: L("PDFs", "PDFs"), type: "file", accept: "application/pdf", required: true, multiple: true }],
+    run: async (input) => {
+      const files = (input.files as File[]) || [];
+      if (!files.length) return { kind: "text", value: "No files" };
+      const out = await PDFDocument.create();
+      for (const f of files) {
+        const src = await PDFDocument.load(await fileToBytes(f));
+        const pages = await out.copyPages(src, src.getPageIndices());
+        pages.forEach((p) => out.addPage(p));
+      }
+      const bytes = await out.save();
+      return { kind: "file", value: await pdfToDataUrl(bytes), filename: "merged.pdf", mime: "application/pdf" };
+    },
+    seoTitle: L("PDF Merger", "PDF মার্জার"),
+    seoDescription: L("Merge PDFs.", "PDF মার্জ।"),
+    keywords: ["pdf merger"],
+    instructions: LI(["Select multiple PDFs."], ["একাধিক PDF নির্বাচন করুন।"]),
+    faqs: [], related: [],
+  },
+  {
+    id: "pdf-split-to-zip", slug: "pdf-split-to-zip", category: "pdf", icon: "Archive",
+    name: L("PDF Split to ZIP", "PDF স্প্লিট টু ZIP"),
+    description: L("Split PDF pages into separate PDFs in a ZIP.", "PDF পেজগুলোকে আলাদা PDF হিসেবে ZIP এ স্প্লিট।"),
+    inputSchema: [{ name: "file", label: L("PDF", "PDF"), type: "file", accept: "application/pdf", required: true }],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const src = await PDFDocument.load(await fileToBytes(file));
+      const zip = new JSZip();
+      for (let i = 0; i < src.getPageCount(); i++) {
+        const out = await PDFDocument.create();
+        const [p] = await out.copyPages(src, [i]);
+        out.addPage(p);
+        const bytes = await out.save();
+        zip.file(`page-${i + 1}.pdf`, bytes);
+      }
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = await new Promise<string>((resolve) => { const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(blob); });
+      return { kind: "file", value: url, filename: "pages.zip", mime: "application/zip" };
+    },
+    seoTitle: L("PDF Split to ZIP", "PDF স্প্লিট টু ZIP"),
+    seoDescription: L("Split PDF to ZIP.", "PDF স্প্লিট টু ZIP।"),
+    keywords: ["pdf split zip"],
     instructions: LI(["Upload PDF."], ["PDF আপলোড করুন।"]),
     faqs: [], related: [],
   },

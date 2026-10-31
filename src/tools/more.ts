@@ -322,7 +322,7 @@ export const moreTools: ToolDefinition[] = [
         const re = new RegExp(String(input.pattern), String(input.flags || "g"));
         const matches = String(input.text || "").match(re);
         return { kind: "text", value: matches ? matches.join("\n") : "No matches" };
-      } catch (e: any) { return { kind: "text", value: `Error: ${e.message}` }; }
+      } catch (e) { return { kind: "text", value: `Error: ${(e as Error).message}` }; }
     },
     seoTitle: L("Regex Tester", "রেজেক্স টেস্টার"),
     seoDescription: L("Test regex.", "রেজেক্স টেস্ট।"),

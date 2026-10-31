@@ -12,6 +12,7 @@ export type ToolField = {
   placeholder?: LocalizedText;
   options?: ToolFieldOption[];
   accept?: string;
+  multiple?: boolean;
   required?: boolean;
   min?: number;
   max?: number;
@@ -36,6 +37,7 @@ export type ToolDefinition = {
   icon: string;
   description: LocalizedText;
   inputSchema: ToolField[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   run: (input: Record<string, any>, locale: Locale) => Promise<ToolResult> | ToolResult;
   seoTitle: LocalizedText;
   seoDescription: LocalizedText;

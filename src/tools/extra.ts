@@ -178,7 +178,7 @@ export const extraTools: ToolDefinition[] = [
       if (to === "rgb") return { kind: "text", value: `rgb(${r}, ${g}, ${b})` };
       if (to === "hsl") {
         const rr=r/255, gg=g/255, bb=b/255; const max=Math.max(rr,gg,bb), min=Math.min(rr,gg,bb);
-        let h=0, s=0, l=(max+min)/2; const d=max-min;
+        let h=0, s=0; const l=(max+min)/2; const d=max-min;
         if (d!==0){ s=l>0.5?d/(2-max-min):d/(max+min); switch(max){case rr:h=(gg-bb)/d+(gg<bb?6:0);break;case gg:h=(bb-rr)/d+2;break;case bb:h=(rr-gg)/d+4;break;} h/=6; }
         return { kind: "text", value: `hsl(${Math.round(h*360)}, ${Math.round(s*100)}%, ${Math.round(l*100)}%)` };
       }
@@ -1200,7 +1200,7 @@ export const extraTools: ToolDefinition[] = [
     inputSchema: [{ name: "css", label: L("CSS", "CSS"), type: "textarea", required: true }],
     run: (input) => {
       const css = String(input.css || "");
-      let out = css.replace(/\s*\{\s*/g, " {\n  ").replace(/;\s*/g, ";\n  ").replace(/\s*\}\s*/g, "\n}\n");
+      const out = css.replace(/\s*\{\s*/g, " {\n  ").replace(/;\s*/g, ";\n  ").replace(/\s*\}\s*/g, "\n}\n");
       return { kind: "text", value: out.trim() };
     },
     seoTitle: L("CSS Formatter", "CSS ফরম্যাটার"),
@@ -1217,7 +1217,7 @@ export const extraTools: ToolDefinition[] = [
     inputSchema: [{ name: "js", label: L("JavaScript", "JavaScript"), type: "textarea", required: true }],
     run: (input) => {
       const js = String(input.js || "");
-      let out = js.replace(/;/g, ";\n").replace(/\{/g, " {\n").replace(/\}/g, "\n}\n");
+      const out = js.replace(/;/g, ";\n").replace(/\{/g, " {\n").replace(/\}/g, "\n}\n");
       return { kind: "text", value: out.trim() };
     },
     seoTitle: L("JavaScript Formatter", "JavaScript ফরম্যাটার"),

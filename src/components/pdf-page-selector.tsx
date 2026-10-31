@@ -15,6 +15,28 @@ export function PdfPageSelector() {
   const [pagesSpec, setPagesSpec] = useState("all");
   const [thumbnails, setThumbnails] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [thumbBatch, setThumbBatch] = useState(12);
+
+  const loadMoreThumbs = async () => {
+    if (!file) return;
+    const buf = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const start = thumbnails.length + 1;
+    const end = Math.min(pdf.numPages, start + 11);
+    const newThumbs = [...thumbnails];
+    for (let i = start; i <= end; i++) {
+      const page = await pdf.getPage(i);
+      const vp = page.getViewport({ scale: 0.4 });
+      const canvas = document.createElement("canvas");
+      canvas.width = vp.width;
+      canvas.height = vp.height;
+      const ctx = canvas.getContext("2d")!;
+      await page.render({ canvasContext: ctx, viewport: vp, canvas }).promise;
+      newThumbs.push(canvas.toDataURL("image/png"));
+    }
+    setThumbnails(newThumbs);
+    setThumbBatch(end);
+  };
   const [result, setResult] = useState<string | null>(null);
   const [resultName, setResultName] = useState("");
 
@@ -87,7 +109,7 @@ export function PdfPageSelector() {
             ))}
           </div>
           {pageCount > thumbnails.length && (
-            <p className="text-xs text-[var(--foreground)]/60">Showing first {thumbnails.length} of {pageCount} pages.</p>
+            <button onClick={loadMoreThumbs} className="rounded border px-2 py-1 text-xs">Load more pages</button>
           )}
           <button onClick={async () => {
             if (!file || !effectivePages.length) return;

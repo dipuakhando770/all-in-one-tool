@@ -35,7 +35,7 @@ export const imageTools: ToolDefinition[] = [
       { name: "file", label: L("Image(s)", "ছবি"), type: "file", accept: "image/*", required: true, multiple: true },
       { name: "quality", label: L("Quality (0.1-1)", "কোয়ালিটি (0.1-1)"), type: "number", min: 0.1, max: 1, step: 0.1 },
     ],
-    run: async (input) => {
+    run: async (input, _locale, onProgress) => {
       const files = (Array.isArray(input.file) ? input.file : [input.file]).filter(Boolean) as File[];
       if (!files.length) return { kind: "text", value: "No file" };
       const q = Number(input.quality) || 0.7;
@@ -50,19 +50,27 @@ export const imageTools: ToolDefinition[] = [
         return { kind: "image", value: dataUrl, filename: "compressed.jpg" };
       }
       const outputs: { name: string; data: Uint8Array }[] = [];
-      for (const file of files) {
-        const img = await fileToImage(file);
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width; canvas.height = img.height;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0);
-        const dataUrl = await canvasToDataURL(canvas, file.type || "image/jpeg", q);
-        const base64 = dataUrl.split(",")[1];
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        outputs.push({ name: `compressed-${file.name}`, data: bytes });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        onProgress?.({ fileIndex: i, total: files.length, status: "start" });
+        try {
+          const img = await fileToImage(file);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width; canvas.height = img.height;
+          const ctx = canvas.getContext("2d")!;
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = await canvasToDataURL(canvas, file.type || "image/jpeg", q);
+          const base64 = dataUrl.split(",")[1];
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+          outputs.push({ name: `compressed-${file.name}`, data: bytes });
+          onProgress?.({ fileIndex: i, total: files.length, status: "complete" });
+        } catch (e) {
+          onProgress?.({ fileIndex: i, total: files.length, status: "error", error: (e as Error).message });
+        }
       }
+      if (!outputs.length) return { kind: "text", value: "All files failed" };
       const url = await createZip(outputs.map((o) => ({ name: o.name, data: o.data })));
       return { kind: "file", value: url, filename: "compressed.zip", mime: "application/zip" };
     },
@@ -112,7 +120,7 @@ export const imageTools: ToolDefinition[] = [
         { value: "image/webp", label: L("WebP", "WebP") },
       ] },
     ],
-    run: async (input) => {
+    run: async (input, _locale, onProgress) => {
       const files = (Array.isArray(input.file) ? input.file : [input.file]).filter(Boolean) as File[];
       if (!files.length) return { kind: "text", value: "No file" };
       const mime = String(input.format || "image/png");
@@ -128,20 +136,28 @@ export const imageTools: ToolDefinition[] = [
         return { kind: "image", value: dataUrl, filename: `converted.${ext}` };
       }
       const outputs: { name: string; data: Uint8Array }[] = [];
-      for (const file of files) {
-        const img = await fileToImage(file);
-        const canvas = document.createElement("canvas");
-        canvas.width = img.width; canvas.height = img.height;
-        const ctx = canvas.getContext("2d")!;
-        ctx.drawImage(img, 0, 0);
-        const dataUrl = await canvasToDataURL(canvas, mime, 0.9);
-        const base64 = dataUrl.split(",")[1];
-        const binary = atob(base64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
-        const baseName = file.name.replace(/\.[^.]+$/, "");
-        outputs.push({ name: `${baseName}.${ext}`, data: bytes });
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        onProgress?.({ fileIndex: i, total: files.length, status: "start" });
+        try {
+          const img = await fileToImage(file);
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width; canvas.height = img.height;
+          const ctx = canvas.getContext("2d")!;
+          ctx.drawImage(img, 0, 0);
+          const dataUrl = await canvasToDataURL(canvas, mime, 0.9);
+          const base64 = dataUrl.split(",")[1];
+          const binary = atob(base64);
+          const bytes = new Uint8Array(binary.length);
+          for (let j = 0; j < binary.length; j++) bytes[j] = binary.charCodeAt(j);
+          const baseName = file.name.replace(/\.[^.]+$/, "");
+          outputs.push({ name: `${baseName}.${ext}`, data: bytes });
+          onProgress?.({ fileIndex: i, total: files.length, status: "complete" });
+        } catch (e) {
+          onProgress?.({ fileIndex: i, total: files.length, status: "error", error: (e as Error).message });
+        }
       }
+      if (!outputs.length) return { kind: "text", value: "All files failed" };
       const url = await createZip(outputs.map((o) => ({ name: o.name, data: o.data })));
       return { kind: "file", value: url, filename: "converted.zip", mime: "application/zip" };
     },

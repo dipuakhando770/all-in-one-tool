@@ -38,7 +38,7 @@ export type ToolDefinition = {
   description: LocalizedText;
   inputSchema: ToolField[];
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  run: (input: Record<string, any>, locale: Locale) => Promise<ToolResult> | ToolResult;
+  run: (input: Record<string, any>, locale: Locale, onProgress?: (event: { fileIndex: number; total: number; status: "start" | "complete" | "error"; error?: string }) => void) => Promise<ToolResult> | ToolResult;
   seoTitle: LocalizedText;
   seoDescription: LocalizedText;
   keywords: string[];

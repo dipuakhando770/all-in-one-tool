@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { BatchFileUpload } from "@/components/batch-file-upload";
+import { ProcessingQueue, type QueueItem, type QueueStatus } from "@/components/processing-queue";
 import { getToolBySlug } from "@/tools/registry";
 import type { Locale } from "@/lib/i18n";
 
@@ -10,10 +11,33 @@ export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Local
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [queue, setQueue] = useState<QueueItem[]>([]);
 
   const run = async () => {
     setLoading(true); setError("");
-    try { setResult(await tool.run(values, locale)); }
+    // Build queue from multiple file fields
+    const fileFields = tool.inputSchema.filter((f) => f.type === "file");
+    const qItems: QueueItem[] = [];
+    for (const f of fileFields) {
+      const v = values[f.name];
+      const files = Array.isArray(v) ? v : v ? [v] : [];
+      if (f.multiple) {
+        files.forEach((file: File, i: number) => {
+          qItems.push({ id: `${f.name}-${i}-${file.name}`, name: file.name, size: file.size, status: "waiting" });
+        });
+      }
+    }
+    setQueue(qItems);
+
+    const onProgress = (event: { fileIndex: number; total: number; status: "start" | "complete" | "error"; error?: string }) => {
+      setQueue((prev) => prev.map((item, idx) => {
+        if (idx !== event.fileIndex) return item;
+        const status: QueueStatus = event.status === "start" ? "processing" : event.status === "complete" ? "completed" : "failed";
+        return { ...item, status, error: event.error };
+      }));
+    };
+
+    try { setResult(await tool.run(values, locale, onProgress)); }
     catch (e) { setError((e as Error).message || dict.common.error); }
     finally { setLoading(false); }
   };
@@ -64,6 +88,13 @@ export function ToolRunner({ slug, locale, dict }: { slug: string; locale: Local
         </div>
         {result?.kind === "image" ? <img src={result.value} alt="result" className="max-h-80 rounded-lg" /> : result?.kind === "html" ? <div dangerouslySetInnerHTML={{ __html: result.value }} /> : <pre className="whitespace-pre-wrap break-words text-sm">{result?.value ?? ""}</pre>}
       </div>
+      {queue.length > 0 && (
+        <div className="mt-4">
+          <ProcessingQueue items={queue} />
+        </div>
+      )}
     </div>
+
   );
 }
+

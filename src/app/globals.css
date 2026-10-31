@@ -3,26 +3,47 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #ffffff;
-  --foreground: #0f172a;
-  --muted: #f1f5f9;
-  --border: #e2e8f0;
-  --accent: #2563eb;
+  --background: #F8FAFC;
+  --surface: #FFFFFF;
+  --elevated: #FFFFFF;
+  --primary: #635BDB;
+  --secondary: #8B5CF6;
+  --foreground: #172033;
+  --muted: #64748B;
+  --border: #E8EAF2;
+  --accent: #635BDB;
 }
 
 .dark {
-  --background: #0b1220;
-  --foreground: #e2e8f0;
-  --muted: #1e293b;
-  --border: #334155;
-  --accent: #60a5fa;
+  --background: #0B1020;
+  --surface: #111827;
+  --elevated: #172033;
+  --primary: #8B80FF;
+  --secondary: #8B5CF6;
+  --foreground: #F8FAFC;
+  --muted: #94A3B8;
+  --border: #263247;
+  --accent: #8B80FF;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  font-family: system-ui, "Nirmala UI", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 * { box-sizing: border-box; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+a, button { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
 

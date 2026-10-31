@@ -17,4 +17,7 @@ export const categories: Category[] = [
   { slug: "text", icon: "Type", name: { en: "Text Tools", bn: "টেক্সট টুলস" }, description: { en: "Count, convert and clean text.", bn: "টেক্সট গণনা, কনভার্ট ও পরিষ্কার।" }, color: "from-amber-500 to-yellow-500" },
   { slug: "social", icon: "Share2", name: { en: "Social Media Tools", bn: "সোশ্যাল মিডিয়া টুলস" }, description: { en: "Captions, hashtags and previews.", bn: "ক্যাপশন, হ্যাশট্যাগ ও প্রিভিউ।" }, color: "from-sky-500 to-indigo-500" },
   { slug: "ai", icon: "Sparkles", name: { en: "AI Tools", bn: "AI টুলস" }, description: { en: "AI-assisted writing helpers.", bn: "AI-সহায়তা লেখার টুল।" }, color: "from-fuchsia-500 to-pink-500" },
+  { slug: "data", icon: "Database", name: { en: "Data & Conversion Tools", bn: "ডেটা ও কনভার্শন টুলস" }, description: { en: "Convert and validate data formats.", bn: "ডেটা ফরম্যাট কনভার্ট ও ভ্যালিডেট।" }, color: "from-indigo-500 to-blue-500" },
+  { slug: "web", icon: "Globe", name: { en: "Web Tools", bn: "ওয়েব টুলস" }, description: { en: "URL, HTTP and browser helpers.", bn: "URL, HTTP ও ব্রাউজার সহায়ক।" }, color: "from-cyan-500 to-teal-500" },
+  { slug: "file", icon: "Folder", name: { en: "File & Productivity Tools", bn: "ফাইল ও প্রোডাক্টিভিটি টুলস" }, description: { en: "File info and productivity helpers.", bn: "ফাইল তথ্য ও প্রোডাক্টিভিটি সহায়ক।" }, color: "from-orange-500 to-amber-500" },
 ];

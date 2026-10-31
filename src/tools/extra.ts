@@ -1413,5 +1413,35 @@ export const extraTools: ToolDefinition[] = [
     faqs: [],
     related: ["case-converter"],
   },
+  {
+    id: "image-border-tool", slug: "image-border-tool", category: "image", icon: "Square",
+    name: L("Image Border Tool", "ইমেজ বর্ডার টুল"),
+    description: L("Add a border to an image.", "ছবিতে বর্ডার যোগ করুন।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "size", label: L("Border Size (px)", "বর্ডার সাইজ (px)"), type: "number", min: 1, max: 50, step: 1 },
+      { name: "color", label: L("Border Color", "বর্ডার কালার"), type: "color" },
+    ],
+    run: async (input) => {
+      const file = input.file as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => { const i = new Image(); const u = URL.createObjectURL(file); return new Promise<HTMLImageElement>((res) => { i.onload = () => { URL.revokeObjectURL(u); res(i); }; i.src = u; }); })();
+      const b = Math.max(1, Number(input.size) || 4);
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width + b * 2; canvas.height = img.height + b * 2;
+      const ctx = canvas.getContext("2d")!;
+      ctx.fillStyle = String(input.color || "#000000");
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, b, b);
+      const du = await new Promise<string>((resolve) => { canvas.toBlob((blob) => { if (!blob) return resolve(""); const r = new FileReader(); r.onload = () => resolve(String(r.result)); r.readAsDataURL(blob); }, file.type || "image/png"); });
+      return { kind: "image", value: du, filename: "bordered.png" };
+    },
+    seoTitle: L("Image Border Tool", "ইমেজ বর্ডার টুল"),
+    seoDescription: L("Add border to images.", "ছবিতে বর্ডার যোগ করুন।"),
+    keywords: ["image border tool"],
+    instructions: LI(["Upload image, set border size and color."], ["ছবি আপলোড, বর্ডার সাইজ ও কালার সেট করুন।"]),
+    faqs: [],
+    related: ["image-resizer"],
+  },
 ];
 

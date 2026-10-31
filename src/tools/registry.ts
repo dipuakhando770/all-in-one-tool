@@ -5,6 +5,7 @@ import { calculatorTools } from "@/tools/calculator";
 import { seoTools } from "@/tools/seo";
 import { socialTools } from "@/tools/social";
 import { aiTools } from "@/tools/ai";
+import { extraTools } from "@/tools/extra";
 import type { ToolDefinition } from "@/lib/tools/types";
 
 export const allTools: ToolDefinition[] = [
@@ -15,6 +16,7 @@ export const allTools: ToolDefinition[] = [
   ...seoTools,
   ...socialTools,
   ...aiTools,
+  ...extraTools,
 ];
 
 export function getToolBySlug(slug: string) {

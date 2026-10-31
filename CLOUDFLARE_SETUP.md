@@ -12,3 +12,13 @@
 8. Deploy: `npx wrangler deploy`.
 
 GitHub Actions requires secrets CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID.
+
+
+## Cloudflare Workers Builds (required)
+- Build command: `npm run cf:build`
+- Deploy command: `npx opennextjs-cloudflare deploy` (or `npx wrangler deploy`)
+- Root directory: project root
+- Production branch: main
+
+Do NOT use `npm run build` alone as the Cloudflare build command.
+The OpenNext build generates `.open-next/worker.js`, `.open-next/assets`, and `.open-next/.build/open-next.config.mjs`.

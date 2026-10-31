@@ -4,6 +4,7 @@ import { getToolBySlug } from "@/tools/registry";
 import { ToolRunner } from "@/components/tool-runner";
 import { BatchImageProcessor } from "@/components/batch-image-processor";
 import { PdfPageSelector } from "@/components/pdf-page-selector";
+import { PdfSplitter } from "@/components/pdf-splitter";
 import { PdfMerger } from "@/components/pdf-merger";
 import type { Locale } from "@/lib/i18n";
 
@@ -43,6 +44,8 @@ export default async function ToolPage({ params }: { params: Promise<{ locale: s
           <BatchImageProcessor mode="convert" />
         ) : slug === "pdf-merger" ? (
           <PdfMerger />
+        ) : slug === "pdf-page-extractor" ? (
+          <PdfSplitter />
         ) : slug === "pdf-to-image" ? (
           <PdfPageSelector />
         ) : (

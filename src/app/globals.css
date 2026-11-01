@@ -2,40 +2,188 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* =====================================================
+   NASIR TOOLS — PREMIUM DESIGN SYSTEM
+   Design tokens, typography, and base styles
+   ===================================================== */
+
+/* --------------------------------------------------
+   1. DESIGN TOKENS — LIGHT MODE
+   -------------------------------------------------- */
 :root {
-  --background: #F8FAFC;
+  /* Backgrounds */
+  --background: #F7F8FC;
   --surface: #FFFFFF;
   --elevated: #FFFFFF;
-  --primary: #635BDB;
-  --secondary: #8B5CF6;
-  --foreground: #172033;
-  --muted: #64748B;
-  --border: #E8EAF2;
-  --accent: #635BDB;
+  --surface-2: #F0F2F9;
+
+  /* Primary brand */
+  --primary: #5B50E8;
+  --primary-hover: #4843D4;
+  --primary-subtle: #EEF0FD;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --secondary: #7C6FF7;
+  --secondary-subtle: #F3F1FE;
+
+  /* Accent */
+  --accent: #5B50E8;
+  --accent-hover: #4843D4;
+
+  /* Text */
+  --foreground: #0F1523;
+  --muted-foreground: #6B7280;
+  --subtle-foreground: #9CA3AF;
+
+  /* Borders */
+  --border: #E4E7F0;
+  --border-strong: #CBD2E1;
+
+  /* States */
+  --success: #10B981;
+  --success-subtle: #ECFDF5;
+  --warning: #F59E0B;
+  --warning-subtle: #FFFBEB;
+  --error: #EF4444;
+  --error-subtle: #FEF2F2;
+  --info: #3B82F6;
+  --info-subtle: #EFF6FF;
+
+  /* Semantic legacy aliases (preserved for existing components) */
+  --muted: #F0F2F9;
 }
 
+/* --------------------------------------------------
+   2. DESIGN TOKENS — DARK MODE
+   -------------------------------------------------- */
 .dark {
-  --background: #0B1020;
-  --surface: #111827;
-  --elevated: #172033;
-  --primary: #8B80FF;
-  --secondary: #8B5CF6;
-  --foreground: #F8FAFC;
-  --muted: #94A3B8;
-  --border: #263247;
-  --accent: #8B80FF;
+  /* Backgrounds */
+  --background: #090D1A;
+  --surface: #0F1424;
+  --elevated: #161C30;
+  --surface-2: #1C2338;
+
+  /* Primary brand */
+  --primary: #7B73F5;
+  --primary-hover: #9089F8;
+  --primary-subtle: #1A1B3A;
+  --primary-foreground: #FFFFFF;
+
+  /* Secondary */
+  --secondary: #9D96FF;
+  --secondary-subtle: #16173A;
+
+  /* Accent */
+  --accent: #7B73F5;
+  --accent-hover: #9089F8;
+
+  /* Text */
+  --foreground: #F1F3F9;
+  --muted-foreground: #8D96A8;
+  --subtle-foreground: #5A6478;
+
+  /* Borders */
+  --border: #1E2840;
+  --border-strong: #2A3655;
+
+  /* States */
+  --success: #34D399;
+  --success-subtle: #052E22;
+  --warning: #FBBF24;
+  --warning-subtle: #1C1507;
+  --error: #F87171;
+  --error-subtle: #2A0B0B;
+  --info: #60A5FA;
+  --info-subtle: #0C1A3A;
+
+  /* Semantic legacy aliases */
+  --muted: #161C30;
+}
+
+/* --------------------------------------------------
+   3. TYPOGRAPHY — FONT IMPORTS
+   Using Inter for UI + fallback to system fonts
+   -------------------------------------------------- */
+@font-face {
+  font-family: "Inter";
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: local("Inter"), local("Inter-Regular");
+}
+
+/* --------------------------------------------------
+   4. BASE RESET AND BODY
+   -------------------------------------------------- */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, "Nirmala UI", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont,
+    "Nirmala UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
-* { box-sizing: border-box; }
+/* --------------------------------------------------
+   5. FOCUS STYLES — ACCESSIBLE
+   -------------------------------------------------- */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
 
+/* --------------------------------------------------
+   6. TRANSITIONS — CONSISTENT
+   -------------------------------------------------- */
+a, button {
+  transition: color 150ms ease, background-color 150ms ease,
+    border-color 150ms ease, box-shadow 150ms ease, opacity 150ms ease,
+    transform 150ms ease;
+}
+
+/* --------------------------------------------------
+   7. SCROLLBAR — CUSTOM SUBTLE
+   -------------------------------------------------- */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+/* --------------------------------------------------
+   8. SELECTION COLOR
+   -------------------------------------------------- */
+::selection {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+/* --------------------------------------------------
+   9. REDUCED MOTION
+   -------------------------------------------------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
@@ -45,5 +193,226 @@ body {
   }
 }
 
-a, button { transition: color 150ms ease, background-color 150ms ease, border-color 150ms ease, box-shadow 150ms ease; }
+/* --------------------------------------------------
+   10. UTILITY CLASSES — DESIGN SYSTEM
+   -------------------------------------------------- */
 
+/* Gradient text utility */
+.text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Glass card */
+.glass {
+  background: var(--surface);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border);
+}
+
+/* Card hover */
+.card-hover {
+  transition: box-shadow 200ms ease, border-color 200ms ease, transform 200ms ease;
+}
+.card-hover:hover {
+  box-shadow: 0 4px 20px rgba(91, 80, 232, 0.08);
+  border-color: var(--primary);
+  transform: translateY(-1px);
+}
+
+/* Skeleton loader animation */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}
+.skeleton {
+  background: var(--surface-2);
+  border-radius: 6px;
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+/* Fade-in animation */
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in {
+  animation: fade-in 0.3s ease forwards;
+}
+
+/* Spin animation (for loading) */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* Badge pulse */
+@keyframes badge-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* --------------------------------------------------
+   11. COMPONENT BASE STYLES
+   -------------------------------------------------- */
+
+/* Input base */
+.input-base {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  transition: border-color 150ms ease, box-shadow 150ms ease;
+  appearance: none;
+  -webkit-appearance: none;
+}
+.input-base:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-subtle);
+}
+.input-base::placeholder {
+  color: var(--subtle-foreground);
+}
+
+/* Button base */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 150ms ease;
+  white-space: nowrap;
+  border: 1px solid transparent;
+  text-decoration: none;
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border-color: var(--primary);
+}
+.btn-primary:hover {
+  background: var(--primary-hover);
+  border-color: var(--primary-hover);
+}
+
+.btn-secondary {
+  background: var(--surface);
+  color: var(--foreground);
+  border-color: var(--border);
+}
+.btn-secondary:hover {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted-foreground);
+  border-color: transparent;
+}
+.btn-ghost:hover {
+  background: var(--surface-2);
+  color: var(--foreground);
+}
+
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.8125rem;
+}
+.btn-lg {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+}
+
+/* --------------------------------------------------
+   12. PROSE / CONTENT STYLES
+   -------------------------------------------------- */
+.prose {
+  color: var(--foreground);
+  line-height: 1.7;
+}
+.prose h1, .prose h2, .prose h3 {
+  font-weight: 700;
+  line-height: 1.25;
+  color: var(--foreground);
+}
+.prose p {
+  margin-bottom: 1rem;
+}
+.prose a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+
+/* --------------------------------------------------
+   13. PAGE LAYOUT UTILITIES
+   -------------------------------------------------- */
+.page-container {
+  width: 100%;
+  max-width: 80rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1rem;
+  padding-right: 1rem;
+}
+@media (min-width: 640px) {
+  .page-container { padding-left: 1.5rem; padding-right: 1.5rem; }
+}
+@media (min-width: 1024px) {
+  .page-container { padding-left: 2rem; padding-right: 2rem; }
+}
+
+/* --------------------------------------------------
+   14. TOAST / NOTIFICATION SLOTS
+   -------------------------------------------------- */
+[data-sonner-toaster] {
+  font-family: inherit;
+}
+
+/* --------------------------------------------------
+   15. COMMAND PALETTE OVERLAY
+   -------------------------------------------------- */
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 9998;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+}
+
+.cmd-panel {
+  width: 100%;
+  max-width: 600px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+  animation: fade-in 0.15s ease;
+}

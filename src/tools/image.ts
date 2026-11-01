@@ -221,4 +221,73 @@ export const imageTools: ToolDefinition[] = [
     faqs: [],
     related: ["color-converter"],
   },
+  {
+    id: "background-remover", slug: "background-remover", category: "image", icon: "Eraser", new: true,
+    name: L("Background Remover", "ব্যাকগ্রাউন্ড রিমুভার"),
+    description: L("Remove image backgrounds in your browser using AI (U²-Net).", "AI (U²-Net) দিয়ে ছবির ব্যাকগ্রাউন্ড সরান।"),
+    inputSchema: [{ name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true }],
+    run: async (input, _locale, onProgress) => {
+      const file = (Array.isArray(input.file) ? input.file[0] : input.file) as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const { removeBackground } = await import("@/lib/image/background-removal");
+      const dataUrl = await removeBackground(file, (f) => {
+        onProgress?.({ fileIndex: 0, total: 1, status: "start" });
+      });
+      return { kind: "image", value: dataUrl, filename: "background-removed.png", mime: "image/png" };
+    },
+    seoTitle: L("AI Background Remover", "AI ব্যাকগ্রাউন্ড রিমুভার"),
+    seoDescription: L("Remove backgrounds from images in your browser.", "ব্রাউজারে ছবির ব্যাকগ্রাউন্ড সরান।"),
+    keywords: ["background remover", "remove background", "ai background remover"],
+    instructions: LI(["Upload an image and click process. First run downloads the model (~4.4MB)."], ["ছবি আপলোড করে প্রসেস করুন। প্রথমবার মডেল (~4.4MB) ডাউনলোড হবে।"]),
+    faqs: [],
+    related: ["image-compressor", "image-converter"],
+  },
+  {
+    id: "image-cropper", slug: "image-cropper", category: "image", icon: "Crop", new: true,
+    name: L("Image Cropper", "ইমেজ ক্রপার"),
+    description: L("Crop images by coordinates.", "কোঅর্ডিনেট দিয়ে ছবি ক্রপ করুন।"),
+    inputSchema: [
+      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
+      { name: "x", label: L("X", "X"), type: "number", min: 0, step: 1 },
+      { name: "y", label: L("Y", "Y"), type: "number", min: 0, step: 1 },
+      { name: "width", label: L("Width", "প্রস্থ"), type: "number", min: 1, step: 1 },
+      { name: "height", label: L("Height", "উচ্চতা"), type: "number", min: 1, step: 1 },
+    ],
+    run: async (input) => {
+      const file = (Array.isArray(input.file) ? input.file[0] : input.file) as File;
+      if (!file) return { kind: "text", value: "No file" };
+      const img = await (async () => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          const i = new Image();
+          const u = URL.createObjectURL(file);
+          i.onload = () => { URL.revokeObjectURL(u); resolve(i); };
+          i.onerror = reject;
+          i.src = u;
+        });
+      })();
+      const x = Math.max(0, Number(input.x) || 0);
+      const y = Math.max(0, Number(input.y) || 0);
+      const w = Math.max(1, Number(input.width) || img.width - x);
+      const h = Math.max(1, Number(input.height) || img.height - y);
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d")!;
+      ctx.drawImage(img, x, y, w, h, 0, 0, w, h);
+      const dataUrl = await new Promise<string>((resolve) => {
+        canvas.toBlob((blob) => {
+          if (!blob) return resolve("");
+          const r = new FileReader();
+          r.onload = () => resolve(String(r.result));
+          r.readAsDataURL(blob);
+        }, "image/png");
+      });
+      return { kind: "image", value: dataUrl, filename: "cropped.png", mime: "image/png" };
+    },
+    seoTitle: L("Image Cropper", "ইমেজ ক্রপার"),
+    seoDescription: L("Crop images by coordinates.", "কোঅর্ডিনেট দিয়ে ছবি ক্রপ।"),
+    keywords: ["image cropper", "crop image"],
+    instructions: LI(["Upload image and enter crop coordinates."], ["ছবি আপলোড ও ক্রপ কোঅর্ডিনেট লিখুন।"]),
+    faqs: [],
+    related: ["image-resizer", "image-rotator"],
+  },
 ];

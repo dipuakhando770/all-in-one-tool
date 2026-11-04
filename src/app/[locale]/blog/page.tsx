@@ -1,7 +1,7 @@
 import { getDb } from "@/lib/db/client";
 import type { Locale } from "@/lib/i18n";
 import Link from "next/link";
-import { BookOpen, Calendar, Clock, User, ChevronRight, Sparkles, ArrowRight } from "lucide-react";
+import { BookOpen, Calendar, User, ChevronRight, ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -29,7 +29,19 @@ export default async function BlogPage({
   const l = locale as Locale;
   const db = await getDb();
 
-  let posts: any[] = [];
+interface BlogPostItem {
+  id: string;
+  slug: string;
+  title?: string;
+  category?: string;
+  content?: string;
+  seo_description?: string;
+  published_at?: string;
+  created_at?: string;
+  author_name?: string;
+}
+
+  let posts: BlogPostItem[] = [];
   if (db) {
     try {
       const res = await db
@@ -45,7 +57,7 @@ export default async function BlogPage({
         `)
         .bind(l)
         .all();
-      posts = res.results ?? [];
+      posts = (res.results ?? []) as BlogPostItem[];
     } catch {
       posts = [];
     }

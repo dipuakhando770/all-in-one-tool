@@ -246,6 +246,8 @@ export const pdfTools: ToolDefinition[] = [
       { name: "scale", label: L("Scale", "স্কেল"), type: "number", min: 1, max: 4, step: 0.5 },
     ],
     run: async (input, _locale, onProgress) => {
+      void _locale;
+      void onProgress;
       const file = input.file as File;
       if (!file) return { kind: "text", value: "No file" };
       const pdfjsLib = await getPdfjs();

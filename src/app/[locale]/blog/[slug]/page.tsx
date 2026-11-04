@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { getDb } from "@/lib/db/client";
 import type { Locale } from "@/lib/i18n";
 import Link from "next/link";
-import { ChevronRight, Calendar, User, ArrowLeft, Share2, BookOpen } from "lucide-react";
+import { ChevronRight, Calendar, User, ArrowLeft } from "lucide-react";
 import type { Metadata } from "next";
 
 export async function generateMetadata({
@@ -14,6 +14,13 @@ export async function generateMetadata({
   const db = await getDb();
   if (!db) return {};
 
+interface BlogPostMeta {
+  slug?: string;
+  title?: string;
+  seo_title?: string;
+  seo_description?: string;
+}
+
   const post = await db
     .prepare(`
       SELECT p.slug, t.title, t.seo_title, t.seo_description
@@ -22,7 +29,7 @@ export async function generateMetadata({
       WHERE p.slug = ? AND p.status = 'published'
     `)
     .bind(locale, slug)
-    .first<any>();
+    .first<BlogPostMeta>();
 
   if (!post) return {};
 
@@ -45,6 +52,20 @@ export default async function BlogPostPage({
   const db = await getDb();
   if (!db) notFound();
 
+interface BlogPost {
+  id: string;
+  slug: string;
+  category?: string;
+  featured_image?: string;
+  published_at?: string;
+  created_at?: string;
+  title?: string;
+  content?: string;
+  seo_title?: string;
+  seo_description?: string;
+  author_name?: string;
+}
+
   const post = await db
     .prepare(`
       SELECT p.id, p.slug, p.category, p.featured_image, p.published_at, p.created_at,
@@ -56,7 +77,7 @@ export default async function BlogPostPage({
       WHERE p.slug = ? AND p.status = 'published'
     `)
     .bind(l, slug)
-    .first<any>();
+    .first<BlogPost>();
 
   if (!post) notFound();
 

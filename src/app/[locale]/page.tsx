@@ -59,8 +59,49 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
     },
   ];
 
+  const faqs = [
+    {
+      q: "Are these tools free?",
+      a: "Yes. All tools on Nasir Tools are free to use. No subscription, no hidden fees.",
+    },
+    {
+      q: "Is my data safe and private?",
+      a: "For image and text tools, processing happens entirely in your browser. Files are not uploaded to any server. For tools that require server interaction, this is clearly indicated.",
+    },
+    {
+      q: "Do I need to create an account?",
+      a: "No. All public tools work without registration. An optional account lets you save favorites and track recent usage.",
+    },
+    {
+      q: "Which formats are supported?",
+      a: "We support common image formats (JPEG, PNG, WebP, GIF), PDF files, and standard text/data formats. Each tool page lists its supported formats.",
+    },
+    {
+      q: "Can I use these tools on mobile?",
+      a: "Absolutely. Nasir Tools is fully responsive and works on all screen sizes.",
+    },
+  ];
+
   return (
     <div>
+      {/* FAQ JSON-LD Structured Data */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            mainEntity: faqs.map((faq) => ({
+              "@type": "Question",
+              name: faq.q,
+              acceptedAnswer: {
+                "@type": "Answer",
+                text: faq.a,
+              },
+            })),
+          }),
+        }}
+      />
       {/* ─── HERO ─── */}
       <section className="relative overflow-hidden py-20 md:py-28 lg:py-32">
         {/* Subtle background grid */}
@@ -405,28 +446,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           </div>
 
           <div className="mt-10 space-y-3">
-            {[
-              {
-                q: "Are these tools free?",
-                a: "Yes. All tools on Nasir Tools are free to use. No subscription, no hidden fees.",
-              },
-              {
-                q: "Is my data safe and private?",
-                a: "For image and text tools, processing happens entirely in your browser. Files are not uploaded to any server. For tools that require server interaction, this is clearly indicated.",
-              },
-              {
-                q: "Do I need to create an account?",
-                a: "No. All public tools work without registration. An optional account lets you save favorites and track recent usage.",
-              },
-              {
-                q: "Which formats are supported?",
-                a: "We support common image formats (JPEG, PNG, WebP, GIF), PDF files, and standard text/data formats. Each tool page lists its supported formats.",
-              },
-              {
-                q: "Can I use these tools on mobile?",
-                a: "Absolutely. Nasir Tools is fully responsive and works on all screen sizes.",
-              },
-            ].map((faq, i) => (
+            {faqs.map((faq, i) => (
               <details
                 key={i}
                 className="group rounded-xl border border-[var(--border)] bg-[var(--surface)]"

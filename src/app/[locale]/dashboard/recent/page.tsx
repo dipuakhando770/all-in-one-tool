@@ -9,6 +9,10 @@ import { Clock, ChevronRight, LayoutDashboard, Heart, Settings, CheckCircle2, Al
 import * as Icons from "lucide-react";
 import { getToolIcon } from "@/lib/icons";
 
+function getIcon(name: string): React.ComponentType<{ size?: number }> {
+  return (Icons as unknown as Record<string, React.ComponentType<{ size?: number }>>)[name] || Icons.Wrench;
+}
+
 export default async function RecentPage({
   params,
 }: {
@@ -91,7 +95,7 @@ export default async function RecentPage({
             {rows.map((r, i) => {
               const tool = getToolBySlug(r.tool_slug);
               const iconName = tool ? getToolIcon(tool.slug, tool.icon) : "Wrench";
-              const Icon = (Icons as any)[iconName] || Icons.Wrench;
+              const Icon = getIcon(iconName) || Icons.Wrench;
 
               return (
                 <div

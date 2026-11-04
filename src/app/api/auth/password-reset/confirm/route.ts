@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     const tokenHash = await sha256Hex(data.token);
     const row = await db.prepare(
       "SELECT id,user_id,expires_at,used_at FROM password_reset_tokens WHERE token_hash=?"
-    ).bind(tokenHash).first<any>();
+    ).bind(tokenHash).first<{ id: string; user_id: string; expires_at: string; used_at: string | null }>();
     if (!row || row.used_at || new Date(row.expires_at) < new Date()) {
       return NextResponse.json({ error: "Invalid or expired token" }, { status: 400 });
     }
@@ -23,8 +23,9 @@ export async function POST(req: NextRequest) {
     // invalidate sessions
     await db.prepare("DELETE FROM user_sessions WHERE user_id=?").bind(row.user_id).run();
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    if (e?.issues) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const err = e as { issues?: unknown[]; message?: string };
+    if (err.issues) return NextResponse.json({ error: "Invalid input", details: err.issues }, { status: 400 });
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
   }
 }

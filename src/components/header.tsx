@@ -8,7 +8,13 @@ import {
   Sun, Moon, Monitor, Menu, X, Search, ChevronDown,
   Zap, Layers, Star, LayoutGrid, Sparkles,
 } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useLayoutEffect } from "react";
+
+// Shared dictionary shape used by Header and Footer navigation/footer labels.
+export interface HeaderDict {
+  nav: { login: string; register: string };
+  footer: { tagline: string };
+}
 
 const navLinks = (locale: string) => [
   { href: `/${locale}/tools`, label: "All Tools", icon: LayoutGrid },
@@ -18,7 +24,7 @@ const navLinks = (locale: string) => [
   { href: `/${locale}/blog`, label: "Blog", icon: Zap },
 ];
 
-export function Header({ locale, dict }: { locale: Locale; dict: any }) {
+export function Header({ locale, dict }: { locale: Locale; dict: HeaderDict }) {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -26,7 +32,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: any }) {
   const langRef = useRef<HTMLDivElement>(null);
 
   // Close lang dropdown on outside click
-  useEffect(() => {
+  useLayoutEffect(() => {
     function handler(e: MouseEvent) {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false);
@@ -36,8 +42,12 @@ export function Header({ locale, dict }: { locale: Locale; dict: any }) {
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
-  // Close mobile menu on route change
-  useEffect(() => { setMobileOpen(false); }, [pathname]);
+  // Close mobile menu on route change - defer to next tick
+  useLayoutEffect(() => {
+    if (mobileOpen) {
+      requestAnimationFrame(() => setMobileOpen(false));
+    }
+  }, [pathname, mobileOpen]);
 
   const switchLocale = (l: Locale) => {
     const parts = pathname.split("/");
@@ -242,7 +252,7 @@ export function Header({ locale, dict }: { locale: Locale; dict: any }) {
   );
 }
 
-export function Footer({ locale, dict }: { locale: Locale; dict: any }) {
+export function Footer({ locale, dict }: { locale: Locale; dict: HeaderDict }) {
   const year = new Date().getFullYear();
 
   const toolsLinks = [

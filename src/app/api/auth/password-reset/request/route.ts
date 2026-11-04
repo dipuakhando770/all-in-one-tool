@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { randomToken, sha256Hex } from "@/lib/auth/tokens";
 import { resetRequestSchema } from "@/lib/validation/auth";
+import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,11 +20,11 @@ export async function POST(req: NextRequest) {
     await db.prepare(
       "INSERT INTO password_reset_tokens (id,user_id,token_hash,expires_at,created_at) VALUES (?,?,?,?,?)"
     ).bind(id, user.id, tokenHash, expiresAt, new Date().toISOString()).run();
-    const payload: any = { ok: true };
+    const payload: { ok: boolean; token?: string } = { ok: true };
     if (process.env.NODE_ENV !== "production") payload.token = token;
     return NextResponse.json(payload);
-  } catch (e: any) {
-    if (e?.issues) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    if (e instanceof ZodError) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
+    return NextResponse.json({ error: (e as Error)?.message || "Server error" }, { status: 500 });
   }
 }

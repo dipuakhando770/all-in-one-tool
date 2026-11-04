@@ -14,7 +14,7 @@ export async function createZip(files: { name: string; data: Blob | Uint8Array |
       name = `${base} (${i})${ext}`;
     }
     seen.add(name);
-    zip.file(name, f.data as any);
+    zip.file(name, f.data as unknown as JSZip.InputType);
   }
   const blob = await zip.generateAsync({ type: "blob" });
   return new Promise((resolve) => {

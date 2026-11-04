@@ -153,7 +153,7 @@ export default function InteractiveImageCropper() {
         <input type="number" value={crop.w} onChange={(e) => handleWidthChange(Number(e.target.value))} className="w-20 rounded-lg border px-2 py-1 text-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }} />
         <label className="text-xs" style={{ color: "var(--muted-foreground)" }}>H</label>
         <input type="number" value={crop.h} onChange={(e) => handleHeightChange(Number(e.target.value))} className="w-20 rounded-lg border px-2 py-1 text-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }} />
-        <select value={format} onChange={(e) => setFormat(e.target.value as any)} className="rounded-lg border px-3 py-2 text-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}>
+        <select value={format} onChange={(e) => setFormat(e.target.value as "image/png" | "image/jpeg" | "image/webp")} className="rounded-lg border px-3 py-2 text-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}>
           <option value="image/png">PNG</option>
           <option value="image/jpeg">JPEG</option>
           <option value="image/webp">WebP</option>

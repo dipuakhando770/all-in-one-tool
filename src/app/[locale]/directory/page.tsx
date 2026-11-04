@@ -5,7 +5,8 @@ import { allTools } from "@/tools/registry";
 import { categories } from "@/lib/categories";
 import { ToolCard } from "@/components/tool-card";
 import Link from "next/link";
-import { Search, ChevronRight, BookOpen, Layers, Filter } from "lucide-react";
+import type { Locale } from "@/lib/i18n";
+import { Search, ChevronRight, BookOpen, Filter } from "lucide-react";
 
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
@@ -166,7 +167,7 @@ export default function DirectoryPage() {
       {filtered.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filtered.map((tool) => (
-            <ToolCard key={tool.id} tool={tool} locale={locale as any} />
+            <ToolCard key={tool.id} tool={tool} locale={locale as Locale} />
           ))}
         </div>
       ) : (

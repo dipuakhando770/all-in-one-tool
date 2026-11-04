@@ -10,9 +10,13 @@ export default function BackgroundRemoverUI() {
   const [processing, setProcessing] = useState(false);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState("");
+  const [bgColor, setBgColor] = useState("transparent");
+  const fileInput = useRef<HTMLInputElement>(null);
+  const bgInput = useRef<HTMLInputElement>(null);
+  const [bgImage, setBgImage] = useState<string | null>(null);
+  const [fitMode, setFitMode] = useState<"cover" | "contain">("cover");
   const handleFile = async (file: File) => {
     setError("");
-    setResult(null);
     const url = URL.createObjectURL(file);
     setOriginal(url);
     setProcessing(true);
@@ -29,6 +33,49 @@ export default function BackgroundRemoverUI() {
 
   const download = () => {
     if (!result) return;
+    const finalize = (canvas: HTMLCanvasElement) => {
+      canvas.toBlob((blob) => {
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "background-removed.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      }, "image/png");
+    };
+
+    if (bgImage) {
+      const fg = new Image();
+      const bg = new Image();
+      let loaded = 0;
+      const tryDraw = () => {
+        loaded++;
+        if (loaded < 2) return;
+        const canvas = document.createElement("canvas");
+        canvas.width = fg.width;
+        canvas.height = fg.height;
+        const ctx = canvas.getContext("2d")!;
+        // draw background with fit
+        const scale =
+          fitMode === "cover"
+            ? Math.max(canvas.width / bg.width, canvas.height / bg.height)
+            : Math.min(canvas.width / bg.width, canvas.height / bg.height);
+        const dw = bg.width * scale;
+        const dh = bg.height * scale;
+        const dx = (canvas.width - dw) / 2;
+        const dy = (canvas.height - dh) / 2;
+        ctx.drawImage(bg, dx, dy, dw, dh);
+        ctx.drawImage(fg, 0, 0);
+        finalize(canvas);
+      };
+      fg.onload = tryDraw;
+      bg.onload = tryDraw;
+      fg.src = result;
+      bg.src = bgImage;
+      return;
+    }
+
     if (bgColor === "transparent") {
       const a = document.createElement("a");
       a.href = result;
@@ -45,21 +92,11 @@ export default function BackgroundRemoverUI() {
       ctx.fillStyle = bgColor;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
       ctx.drawImage(img, 0, 0);
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "background-removed.png";
-        a.click();
-        URL.revokeObjectURL(url);
-      }, "image/png");
+      finalize(canvas);
     };
     img.src = result;
   };
 
-  const [bgColor, setBgColor] = useState("transparent");
-  const fileInput = useRef<HTMLInputElement>(null);
   return (
     <div className="space-y-4">
       {!original && (
@@ -91,6 +128,15 @@ export default function BackgroundRemoverUI() {
               <option value="#0000ff">Blue</option>
             </select>
             <input type="color" value={bgColor.startsWith("#") ? bgColor : "#ffffff"} onChange={(e) => setBgColor(e.target.value)} className="h-9 w-9 rounded border" style={{ borderColor: "var(--border)" }} />
+            <button onClick={() => bgInput.current?.click()} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}>
+              Upload background
+            </button>
+            <input ref={bgInput} type="file" accept="image/*" className="hidden" onChange={(e) => { const f = e.target.files?.[0]; if (f) { const u = URL.createObjectURL(f); setBgImage(u); } }} />
+            <select value={fitMode} onChange={(e) => setFitMode(e.target.value as "cover" | "contain")} className="rounded-lg border px-3 py-2 text-sm" style={{ background: "var(--surface)", borderColor: "var(--border)", color: "var(--foreground)" }}>
+              <option value="cover">Cover</option>
+              <option value="contain">Contain</option>
+            </select>
+            {bgImage && <button onClick={() => setBgImage(null)} className="rounded-lg border px-3 py-2 text-sm" style={{ borderColor: "var(--border)", color: "var(--muted-foreground)" }}>Clear bg</button>}
             {result && (
               <button onClick={download} className="flex items-center gap-1.5 rounded-lg px-4 py-2 text-sm font-medium" style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}>
                 <Download size={14} /> Download

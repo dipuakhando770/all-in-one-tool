@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { SearchClient } from "./search-client";
+import type { Locale } from "@/lib/i18n";
 
 export default function SearchPage({ params }: { params: Promise<{ locale: string }> }) {
   return (
@@ -11,6 +12,6 @@ export default function SearchPage({ params }: { params: Promise<{ locale: strin
 
 async function SearchClientWrapper({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
-  return <SearchClient locale={locale as any} />;
+  return <SearchClient locale={locale as Locale} />;
 }
 

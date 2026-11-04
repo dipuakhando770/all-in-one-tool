@@ -806,26 +806,4 @@ export const moreTools: ToolDefinition[] = [
     instructions: LI(["Enter URL."], ["URL দিন।"]),
     faqs: [], related: [],
   },
-  {
-    id: "password-strength-checker", slug: "password-strength-checker", category: "developer", icon: "Shield",
-    name: L("Password Strength Checker", "পাসওয়ার্ড স্ট্রেংথ চেকার"),
-    description: L("Check password strength.", "পাসওয়ার্ড স্ট্রেংথ চেক।"),
-    inputSchema: [{ name: "password", label: L("Password", "পাসওয়ার্ড"), type: "text", required: true }],
-    run: (input) => {
-      const p = String(input.password || "");
-      let score = 0;
-      if (p.length >= 8) score++;
-      if (/[A-Z]/.test(p)) score++;
-      if (/[a-z]/.test(p)) score++;
-      if (/[0-9]/.test(p)) score++;
-      if (/[^A-Za-z0-9]/.test(p)) score++;
-      const levels = ["Very Weak", "Weak", "Fair", "Good", "Strong", "Very Strong"];
-      return { kind: "text", value: `Score: ${score}/5\nStrength: ${levels[score]}` };
-    },
-    seoTitle: L("Password Strength Checker", "পাসওয়ার্ড স্ট্রেংথ চেকার"),
-    seoDescription: L("Check password strength.", "পাসওয়ার্ড স্ট্রেংথ চেক।"),
-    keywords: ["password strength checker"],
-    instructions: LI(["Enter password."], ["পাসওয়ার্ড দিন।"]),
-    faqs: [], related: ["password-generator"],
-  },
 ];

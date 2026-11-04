@@ -230,7 +230,7 @@ export const imageTools: ToolDefinition[] = [
       const file = (Array.isArray(input.file) ? input.file[0] : input.file) as File;
       if (!file) return { kind: "text", value: "No file" };
       const { removeBackground } = await import("@/lib/image/background-removal");
-      const dataUrl = await removeBackground(file, (f) => {
+      const dataUrl = await removeBackground(file, () => {
         onProgress?.({ fileIndex: 0, total: 1, status: "start" });
       });
       return { kind: "image", value: dataUrl, filename: "background-removed.png", mime: "image/png" };

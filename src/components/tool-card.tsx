@@ -7,7 +7,7 @@ import { Star, Sparkles } from "lucide-react";
 
 export function ToolCard({ tool, locale }: { tool: ToolDefinition; locale: Locale }) {
   const iconName = getToolIcon(tool.slug, tool.icon);
-  const Icon = (Icons as any)[iconName] || Icons.Wrench;
+  const Icon = (Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName] || Icons.Wrench;
 
   return (
     <Link
@@ -79,7 +79,7 @@ export function ToolCard({ tool, locale }: { tool: ToolDefinition; locale: Local
 /** Compact horizontal tool list item variant */
 export function ToolListItem({ tool, locale }: { tool: ToolDefinition; locale: Locale }) {
   const iconName = getToolIcon(tool.slug, tool.icon);
-  const Icon = (Icons as any)[iconName] || Icons.Wrench;
+  const Icon = (Icons as unknown as Record<string, React.ComponentType<{ size?: number; className?: string }>>)[iconName] || Icons.Wrench;
 
   return (
     <Link

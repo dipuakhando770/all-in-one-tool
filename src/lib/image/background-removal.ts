@@ -7,10 +7,13 @@ const MODEL_URL = "https://huggingface.co/edgetools/u2netp/resolve/main/u2netp.o
 const ORT_CDN = "https://cdn.jsdelivr.net/npm/onnxruntime-web@1.31.1/dist/";
 const ORT_SCRIPT = `${ORT_CDN}ort.min.js`;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let sessionPromise: Promise<any> | null = null;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function loadOrtScript(): Promise<any> {
   return new Promise((resolve, reject) => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const w = window as any;
     if (w.ort) return resolve(w.ort);
     const existing = document.querySelector(`script[src="${ORT_SCRIPT}"]`);
@@ -106,9 +109,13 @@ export async function removeBackground(file: File, onProgress?: ProgressCallback
   const origH = img.height;
 
   const session = await loadModel(onProgress);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ort = (window as any).ort;
   const input = preprocess(img);
   const tensor = new ort.Tensor("float32", input, [1, 3, 320, 320]);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const feeds: Record<string, any> = {};
   const inputName = session.inputNames[0];
   feeds[inputName] = tensor;

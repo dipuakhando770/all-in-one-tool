@@ -168,7 +168,7 @@ export function SearchClient({ locale }: { locale: Locale }) {
             <span className="text-xs text-[var(--muted-foreground)]">Sort:</span>
             <select
               value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as any)}
+              onChange={(e) => setSortBy(e.target.value as 'relevance' | 'popular' | 'name')}
               className="rounded-lg border border-[var(--border)] bg-[var(--surface)] px-2.5 py-1 text-xs text-[var(--foreground)] outline-none focus:border-[var(--primary)]"
             >
               <option value="relevance">Relevance</option>

@@ -4,6 +4,7 @@ import { BatchFileUpload } from "@/components/batch-file-upload";
 import { ProcessingQueue, type QueueItem, type QueueStatus } from "@/components/processing-queue";
 import { getToolBySlug } from "@/tools/registry";
 import type { Locale } from "@/lib/i18n";
+import type { Dictionary } from "@/lib/i18n";
 import { Play, RotateCcw, Copy, Download, Check, AlertCircle, Loader2 } from "lucide-react";
 
 export function ToolRunner({
@@ -13,11 +14,11 @@ export function ToolRunner({
 }: {
   slug: string;
   locale: Locale;
-  dict: any;
+  dict: Dictionary;
 }) {
   const tool = getToolBySlug(slug)!;
-  const [values, setValues] = useState<Record<string, any>>({});
-  const [result, setResult] = useState<any>(null);
+  const [values, setValues] = useState<Record<string, string | number | boolean | File | File[] | undefined>>({});
+  const [result, setResult] = useState<{ kind?: string; value?: string; filename?: string } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [queue, setQueue] = useState<QueueItem[]>([]);
@@ -34,7 +35,7 @@ export function ToolRunner({
     const qItems: QueueItem[] = [];
     for (const f of fileFields) {
       const v = values[f.name];
-      const files = Array.isArray(v) ? v : v ? [v] : [];
+      const files = Array.isArray(v) ? v as File[] : v instanceof File ? [v] : [];
       if (f.multiple) {
         files.forEach((file: File, i: number) => {
           qItems.push({
@@ -151,7 +152,7 @@ export function ToolRunner({
                   className={inputClass}
                   rows={6}
                   placeholder={field.placeholder?.[locale]}
-                  value={values[field.name] || ""}
+                  value={String(values[field.name] ?? "")}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.name]: e.target.value }))
                   }
@@ -163,7 +164,7 @@ export function ToolRunner({
                   id={`field-${field.name}`}
                   className={inputClass}
                   placeholder={field.placeholder?.[locale]}
-                  value={values[field.name] || ""}
+                  value={String(values[field.name] ?? "")}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.name]: e.target.value }))
                   }
@@ -179,7 +180,7 @@ export function ToolRunner({
                   step={field.step}
                   className={inputClass}
                   placeholder={field.placeholder?.[locale]}
-                  value={values[field.name] ?? ""}
+                  value={String(values[field.name] ?? "")}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.name]: e.target.value }))
                   }
@@ -190,7 +191,7 @@ export function ToolRunner({
                 <select
                   id={`field-${field.name}`}
                   className={inputClass}
-                  value={values[field.name] || field.options?.[0]?.value}
+                  value={String(values[field.name] ?? field.options?.[0]?.value ?? "")}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.name]: e.target.value }))
                   }
@@ -226,13 +227,13 @@ export function ToolRunner({
                     id={`field-${field.name}`}
                     type="color"
                     className="h-9 w-16 cursor-pointer rounded-lg border border-[var(--border)] p-0.5"
-                    value={values[field.name] || "#635BDB"}
+                    value={String(values[field.name] || "#635BDB")}
                     onChange={(e) =>
                       setValues((v) => ({ ...v, [field.name]: e.target.value }))
                     }
                   />
                   <span className="text-sm font-mono" style={{ color: "var(--muted-foreground)" }}>
-                    {values[field.name] || "#635BDB"}
+                    {String(values[field.name] || "#635BDB")}
                   </span>
                 </div>
               )}
@@ -242,7 +243,7 @@ export function ToolRunner({
                   id={`field-${field.name}`}
                   type="date"
                   className={inputClass}
-                  value={values[field.name] || ""}
+                  value={String(values[field.name] ?? "")}
                   onChange={(e) =>
                     setValues((v) => ({ ...v, [field.name]: e.target.value }))
                   }
@@ -256,12 +257,12 @@ export function ToolRunner({
                   files={
                     field.multiple
                       ? Array.isArray(values[field.name])
-                        ? values[field.name]
-                        : values[field.name]
-                        ? [values[field.name]]
+                        ? (values[field.name] as File[])
+                        : values[field.name] instanceof File
+                        ? [values[field.name] as File]
                         : []
-                      : values[field.name]
-                      ? [values[field.name]]
+                      : values[field.name] instanceof File
+                      ? [values[field.name] as File]
                       : []
                   }
                   onChange={(fs) =>
@@ -417,7 +418,7 @@ export function ToolRunner({
                 ) : result.kind === "html" ? (
                   <div
                     className="prose text-sm"
-                    dangerouslySetInnerHTML={{ __html: result.value }}
+                    dangerouslySetInnerHTML={{ __html: result.value ?? "" }}
                   />
                 ) : result.kind === "json" ? (
                   <pre

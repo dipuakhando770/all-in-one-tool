@@ -33,7 +33,7 @@ export default function SettingsForm({
       if (res.ok) {
         setIsSuccess(true);
         setMsg("Settings updated successfully!");
-        setAppTheme(theme as any);
+        setAppTheme(theme as "light" | "dark" | "system");
       } else {
         const data = await res.json().catch(() => ({}));
         setIsSuccess(false);

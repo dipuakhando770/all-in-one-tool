@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
 import { getDb } from "@/lib/db/client";
 import { hashPassword } from "@/lib/auth/password";
 import { createSession, sessionCookie } from "@/lib/auth/session";
 import { randomToken } from "@/lib/auth/tokens";
 import { registerSchema } from "@/lib/validation/auth";
+import { ZodError } from "zod";
 
 export async function POST(req: NextRequest) {
   try {
@@ -29,8 +29,8 @@ export async function POST(req: NextRequest) {
     const res = NextResponse.json({ ok: true, user: { id, email: data.email, name: data.name } });
     res.headers.set("Set-Cookie", sessionCookie(token, expiresAt));
     return res;
-  } catch (e: any) {
-    if (e?.issues) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    if (e instanceof ZodError) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
+    return NextResponse.json({ error: (e as Error)?.message || "Server error" }, { status: 500 });
   }
 }

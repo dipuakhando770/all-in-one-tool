@@ -25,7 +25,7 @@ export async function getSessionUser(token: string | undefined) {
   const tokenHash = await sha256Hex(token);
   const row = await db.prepare(
     `SELECT u.id, u.email, u.name, u.locale, u.theme, u.status FROM user_sessions s JOIN users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at > ?`
-  ).bind(tokenHash, new Date().toISOString()).first<any>();
+  ).bind(tokenHash, new Date().toISOString()).first<{ id: string; email: string; name: string; locale: string; theme: string; status: string }>();
   if (!row || row.status !== "active") return null;
   // roles
   const rolesRes = await db.prepare(

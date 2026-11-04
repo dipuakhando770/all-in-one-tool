@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getDb } from "@/lib/db/client";
 import { getCurrentUser } from "@/lib/auth/guard";
-import { randomToken } from "@/lib/auth/tokens";
 
 export async function GET() {
   const user = await getCurrentUser();

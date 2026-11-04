@@ -23,7 +23,7 @@ export async function PATCH(req: NextRequest) {
     const db = await getDb();
     if (!db) return NextResponse.json({ error: "Database unavailable" }, { status: 503 });
     const fields: string[] = [];
-    const vals: any[] = [];
+    const vals: unknown[] = [];
     if (data.name !== undefined) { fields.push("name=?"); vals.push(data.name); }
     if (data.locale !== undefined) { fields.push("locale=?"); vals.push(data.locale); }
     if (data.theme !== undefined) { fields.push("theme=?"); vals.push(data.theme); }
@@ -32,8 +32,9 @@ export async function PATCH(req: NextRequest) {
       await db.prepare(`UPDATE users SET ${fields.join(",")}, updated_at=? WHERE id=?`).bind(...vals).run();
     }
     return NextResponse.json({ ok: true });
-  } catch (e: any) {
-    if (e?.issues) return NextResponse.json({ error: "Invalid input", details: e.issues }, { status: 400 });
-    return NextResponse.json({ error: e?.message || "Server error" }, { status: 500 });
+  } catch (e: unknown) {
+    const err = e as { issues?: unknown[]; message?: string };
+    if (err.issues) return NextResponse.json({ error: "Invalid input", details: err.issues }, { status: 400 });
+    return NextResponse.json({ error: err.message || "Server error" }, { status: 500 });
   }
 }

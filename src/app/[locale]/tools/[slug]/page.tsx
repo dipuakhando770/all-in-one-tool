@@ -70,7 +70,8 @@ export default async function ToolPage({
       : related;
 
   const iconName = getToolIcon(tool.slug, tool.icon);
-  const Icon = (Icons as any)[iconName] || Icons.Wrench;
+  const IconsRecord = Icons as unknown as Record<string, React.ComponentType<{size?: number}>>;
+  const Icon = IconsRecord[iconName] || Icons.Wrench;
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 md:px-6 md:py-12">
@@ -101,6 +102,29 @@ export default async function ToolPage({
                 item: `https://tools.nasirdigitalhub.com/${l}/tools/${tool.slug}`,
               },
             ],
+          }),
+        }}
+      />
+
+      {/* SoftwareApplication JSON-LD */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "WebApplication",
+            name: tool.name[l],
+            description: tool.seoDescription[l],
+            url: `https://tools.nasirdigitalhub.com/${l}/tools/${tool.slug}`,
+            applicationCategory: "UtilityApplication",
+            operatingSystem: "Web Browser",
+            offers: {
+              "@type": "Offer",
+              price: "0",
+              priceCurrency: "USD",
+            },
+            browserRequirements: "Requires JavaScript. Works on Chrome, Firefox, Safari, Edge.",
+            permissions: tool.slug.includes("image") || tool.slug.includes("pdf") ? "File upload (processed locally)" : "None",
           }),
         }}
       />
@@ -214,7 +238,7 @@ export default async function ToolPage({
           <BatchImageProcessor mode="convert" />
         ) : slug === "pdf-merger" ? (
           <PdfMerger />
-        ) : slug === "pdf-page-extractor" ? (
+        ) : slug === "pdf-split-to-zip" ? (
           <PdfSplitter />
         ) : slug === "pdf-to-image" ? (
           <PdfPageSelector />

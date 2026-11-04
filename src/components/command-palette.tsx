@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useLayoutEffect, useRef, useCallback, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Search, X, ArrowRight, Clock, Sparkles } from "lucide-react";
 import { allTools } from "@/tools/registry";
@@ -13,6 +13,7 @@ const MAX_RECENT = 5;
 const RECENT_KEY = "nasir_recent_searches";
 
 function getRecentSearches(): string[] {
+  if (typeof window === 'undefined') return [];
   try {
     return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]");
   } catch {
@@ -21,6 +22,7 @@ function getRecentSearches(): string[] {
 }
 
 function saveRecentSearch(q: string) {
+  if (typeof window === 'undefined') return;
   try {
     const existing = getRecentSearches();
     const updated = [q, ...existing.filter((s) => s !== q)].slice(0, MAX_RECENT);
@@ -41,12 +43,15 @@ export function CommandPalette({ locale, isOpen, onClose }: CommandPaletteProps)
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEffect(() => {
+  // Reset state when opening - using RAF to defer setState outside effect
+  useLayoutEffect(() => {
     if (isOpen) {
-      setQuery("");
-      setSelected(0);
-      setRecent(getRecentSearches());
-      requestAnimationFrame(() => inputRef.current?.focus());
+      requestAnimationFrame(() => {
+        setQuery("");
+        setSelected(0);
+        setRecent(getRecentSearches());
+        inputRef.current?.focus();
+      });
     }
   }, [isOpen]);
 
@@ -147,6 +152,7 @@ export function CommandPalette({ locale, isOpen, onClose }: CommandPaletteProps)
               </p>
               {results.map((tool, i) => {
                 const iconName = getToolIcon(tool.slug, tool.icon);
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 const Icon = (Icons as any)[iconName] || Icons.Wrench;
                 return (
                   <button

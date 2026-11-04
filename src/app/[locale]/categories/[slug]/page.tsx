@@ -1,11 +1,11 @@
 import { notFound } from "next/navigation";
 import { getDictionary } from "@/lib/dictionary";
 import { categories } from "@/lib/categories";
-import { getToolsByCategory, allTools } from "@/tools/registry";
+import { getToolsByCategory } from "@/tools/registry";
 import { ToolCard } from "@/components/tool-card";
 import type { Locale } from "@/lib/i18n";
 import Link from "next/link";
-import { ChevronRight, Layers, Sparkles, ArrowLeft } from "lucide-react";
+import { ChevronRight, Layers } from "lucide-react";
 import type { Metadata } from "next";
 
 export async function generateMetadata({

@@ -91,5 +91,6 @@ const ICON_MAP: Record<string, string> = {
 
 export function getToolIcon(slug: string, fallback: string): string {
   const candidate = ICON_MAP[slug] || fallback || "Wrench";
-  return (Icons as any)[candidate] ? candidate : "Wrench";
+  const IconsRecord = Icons as unknown as Record<string, React.ComponentType<{size?: number}>>;
+  return IconsRecord[candidate] ? candidate : "Wrench";
 }

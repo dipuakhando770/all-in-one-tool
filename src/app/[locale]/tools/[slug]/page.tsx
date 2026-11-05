@@ -6,6 +6,7 @@ import { BatchImageProcessor } from "@/components/batch-image-processor";
 import { PdfPageSelector } from "@/components/pdf-page-selector";
 import { PdfMerger } from "@/components/pdf-merger";
 import { PdfSplitter } from "@/components/pdf-splitter";
+import { CodeEditorUI } from "@/components/code-editor-ui";
 import { ToolCard } from "@/components/tool-card";
 import type { Locale } from "@/lib/i18n";
 import Link from "next/link";
@@ -242,6 +243,8 @@ export default async function ToolPage({
           <PdfSplitter />
         ) : slug === "pdf-to-image" ? (
           <PdfPageSelector />
+        ) : slug === "online-code-editor" ? (
+          <CodeEditorUI locale={l} />
         ) : (
           <ToolRunner slug={slug} locale={l} dict={dict} />
         )}

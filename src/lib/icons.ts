@@ -1,6 +1,7 @@
 import * as Icons from "lucide-react";
 
 const ICON_MAP: Record<string, string> = {
+  "online-code-editor": "Code2",
   "image-compressor": "Minimize2",
   "image-resizer": "Maximize2",
   "image-format-converter": "RefreshCw",

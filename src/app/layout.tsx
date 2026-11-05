@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 const SITE_URL = "https://tools.nasirdigitalhub.com";
 const SITE_NAME = "Nasir Tools";
 const SITE_DESCRIPTION =
-  "157+ free online tools for images, PDFs, text, code, calculations and more. Fast, browser-based, no registration required.";
+  "161+ free online tools for images, PDFs, text, code, calculations and more. Fast, browser-based, no registration required.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

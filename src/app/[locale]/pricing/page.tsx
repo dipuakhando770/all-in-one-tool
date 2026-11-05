@@ -38,7 +38,7 @@ export default async function PricingPage({
       cta: "Start Using Free",
       ctaHref: `/${l}/tools`,
       features: [
-        { text: "Access to all 157+ web tools", included: true },
+        { text: "Access to all 161+ web tools", included: true },
         { text: "Browser-based client processing", included: true },
         { text: "Standard file size limits (up to 50MB)", included: true },
         { text: "Batch image processing (up to 10 files)", included: true },
@@ -93,7 +93,7 @@ export default async function PricingPage({
 
   const comparisonFeatures = [
     {
-      name: "Core Tools Access (157+)",
+      name: "Core Tools Access (161+)",
       free: "Full Access",
       pro: "Full Access",
       business: "Full Access",
@@ -148,7 +148,7 @@ export default async function PricingPage({
           Simple Plans for Every Workflow
         </h1>
         <p className="mt-4 text-base text-[var(--muted-foreground)] md:text-lg leading-relaxed">
-          Use all 157+ utilities free today. Explore our planned tiers for high-volume batch processing and developer integrations.
+          Use all 161+ utilities free today. Explore our planned tiers for high-volume batch processing and developer integrations.
         </p>
 
         {/* Honest Disclosure Notice */}
@@ -290,7 +290,7 @@ export default async function PricingPage({
           {[
             {
               q: "Will existing free tools stay free?",
-              a: "Yes. All current 157+ browser tools will always remain free. Any future paid plans are strictly for cloud computing, high-volume batch jobs, and enterprise APIs.",
+              a: "Yes. All current 161+ browser tools will always remain free. Any future paid plans are strictly for cloud computing, high-volume batch jobs, and enterprise APIs.",
             },
             {
               q: "Do I need to enter payment details to use the tools?",

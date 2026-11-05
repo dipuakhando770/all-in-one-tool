@@ -30,7 +30,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
   const allRecent = recent.length < 6 ? allTools.slice(-6) : recent;
 
   const stats = [
-    { value: "157+", label: "Free Tools" },
+    { value: `${allTools.length}+`, label: "Free Tools" },
     { value: "10+", label: "Categories" },
     { value: "100%", label: "Browser-based" },
     { value: "0", label: "Registration needed" },
@@ -127,7 +127,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
           {/* Badge */}
           <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--border)] bg-[var(--surface)] px-4 py-1.5 text-sm shadow-sm">
             <span className="h-1.5 w-1.5 rounded-full bg-[var(--success)]" />
-            <span className="text-[var(--muted-foreground)]">157+ tools — all free, all instant</span>
+            <span className="text-[var(--muted-foreground)]">{allTools.length}+ tools — all free, all instant</span>
             <Link
               href={`/${l}/tools`}
               className="font-medium text-[var(--primary)] hover:underline"
@@ -489,7 +489,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               Ready to get started?
             </h2>
             <p className="mt-4 text-base leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-              Browse 157+ free tools and simplify your daily digital work.
+              Browse {allTools.length}+ free tools and simplify your daily digital work.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Link
@@ -509,7 +509,7 @@ export default async function HomePage({ params }: { params: Promise<{ locale: s
               </Link>
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs" style={{ color: "var(--muted-foreground)" }}>
-              {["No credit card needed", "157+ tools", "Browser-based processing"].map((item) => (
+              {["No credit card needed", `${allTools.length}+ tools`, "Browser-based processing"].map((item) => (
                 <span key={item} className="flex items-center gap-1.5">
                   <CheckCircle2 size={12} style={{ color: "var(--success)" }} />
                   {item}

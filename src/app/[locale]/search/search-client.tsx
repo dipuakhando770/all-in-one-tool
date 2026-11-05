@@ -219,7 +219,7 @@ export function SearchClient({ locale }: { locale: Locale }) {
               onClick={() => { setQ(""); setSelectedCategory("all"); }}
               className="rounded-lg bg-[var(--primary)] px-4 py-2 text-xs font-semibold text-white hover:opacity-90"
             >
-              View All 157+ Tools
+              View All 161+ Tools
             </button>
             <Link
               href={`/${locale}/categories`}

@@ -286,7 +286,7 @@ export function Footer({ locale, dict }: { locale: Locale; dict: HeaderDict }) {
           <div className="md:col-span-2">
             <BrandLogo locale={locale} />
             <p className="mt-4 max-w-xs text-sm leading-relaxed" style={{ color: "var(--muted-foreground)" }}>
-              {dict.footer.tagline} 157+ free tools for images, PDFs, text, calculations and more.
+              {dict.footer.tagline} 161+ free tools for images, PDFs, text, calculations and more.
             </p>
             <div className="mt-5 flex items-center gap-3">
               <span

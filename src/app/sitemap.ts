@@ -28,7 +28,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
 
-    // All individual tools (157+)
+    // All individual tools (161+)
     for (const t of allTools) {
       entries.push({
         url: `${base}/${locale}/tools/${t.slug}`,

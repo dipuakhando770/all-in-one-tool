@@ -243,7 +243,7 @@ export function CommandPalette({ locale, isOpen, onClose }: CommandPaletteProps)
             <div className="px-4 py-10 text-center">
               <Search size={28} className="mx-auto mb-3 opacity-30" style={{ color: "var(--muted-foreground)" }} />
               <p className="text-sm" style={{ color: "var(--muted-foreground)" }}>
-                Start typing to search 157+ tools
+                Start typing to search 161+ tools
               </p>
             </div>
           )}

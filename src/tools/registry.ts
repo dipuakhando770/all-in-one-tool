@@ -9,6 +9,8 @@ import { extraTools } from "@/tools/extra";
 import { moreTools } from "@/tools/more";
 import { pdfTools } from "@/tools/pdf";
 import { codeEditorTools } from "@/tools/code-editor";
+import { trendingTools } from "@/tools/trending";
+import { buildToolIndex, pickTools, searchToolIndex, TRENDING_SLUGS, FEATURED_SLUGS } from "@/lib/tool-discovery";
 import type { ToolDefinition } from "@/lib/tools/types";
 
 export const allTools: ToolDefinition[] = [
@@ -23,6 +25,7 @@ export const allTools: ToolDefinition[] = [
   ...moreTools,
   ...pdfTools,
   ...codeEditorTools,
+  ...trendingTools,
 ];
 
 export function getToolBySlug(slug: string) {
@@ -41,30 +44,28 @@ export function getNewTools() {
   return allTools.filter((t) => t.new).slice(0, 12);
 }
 
-// Search index with synonyms (English + Bengali keywords)
-const synonyms: Record<string, string[]> = {
-  "image-compressor": ["ছবির সাইজ কমানো", "compress image", "reduce image size"],
-  "merge-pdf": ["PDF একসাথে করা"],
-  "json-formatter": ["JSON সুন্দর করা", "format json"],
-  "age-calculator": ["কত বয়স হয়েছে", "calculate age"],
-};
+/** Server-side tool index. Never import this into a client component. */
+export const toolIndex = buildToolIndex(allTools);
 
+/** Ranked search with bilingual synonyms. */
 export function searchTools(query: string) {
-  const q = query.trim().toLowerCase();
-  if (!q) return allTools;
-  return allTools.filter((t) => {
-    const haystack = [
-      t.slug,
-      t.name.en,
-      t.name.bn,
-      t.description.en,
-      t.description.bn,
-      t.category,
-      ...t.keywords,
-      ...(synonyms[t.slug] || []),
-    ]
-      .join(" ")
-      .toLowerCase();
-    return haystack.includes(q);
-  });
+  return searchToolIndex(toolIndex, query)
+    .map((entry) => getToolBySlug(entry.slug))
+    .filter((t): t is ToolDefinition => Boolean(t));
+}
+
+/** Curated high-demand workflows, resolved against the live registry. */
+export function getTrendingTools(limit = 8) {
+  return pickTools(toolIndex, TRENDING_SLUGS)
+    .map((entry) => getToolBySlug(entry.slug))
+    .filter((t): t is ToolDefinition => Boolean(t))
+    .slice(0, limit);
+}
+
+/** Editorially featured tools, resolved against the live registry. */
+export function getFeaturedTools(limit = 8) {
+  return pickTools(toolIndex, FEATURED_SLUGS)
+    .map((entry) => getToolBySlug(entry.slug))
+    .filter((t): t is ToolDefinition => Boolean(t))
+    .slice(0, limit);
 }

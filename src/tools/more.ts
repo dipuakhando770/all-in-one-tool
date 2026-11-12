@@ -653,14 +653,82 @@ export const moreTools: ToolDefinition[] = [
   {
     id: "social-media-caption-generator", slug: "social-media-caption-generator", category: "social", icon: "MessageCircle",
     name: L("Social Media Caption Generator", "সোশ্যাল মিডিয়া ক্যাপশন জেনারেটর"),
-    description: L("Generate a social caption.", "সোশ্যাল ক্যাপশন তৈরি।"),
-    inputSchema: [{ name: "topic", label: L("Topic", "টপিক"), type: "text", required: true }],
-    run: (input) => ({ kind: "text", value: `${input.topic} ✨\n\n#social #content` }),
-    seoTitle: L("Social Media Caption Generator", "সোশ্যাল মিডিয়া ক্যাপশন জেনারেটর"),
-    seoDescription: L("Generate social caption.", "সোশ্যাল ক্যাপশন তৈরি।"),
-    keywords: ["social media caption generator"],
-    instructions: LI(["Enter topic."], ["টপিক দিন।"]),
-    faqs: [], related: [],
+    description: L("Generate high-converting social media captions with relevant hashtags for Facebook, Instagram, LinkedIn, and Twitter.", "ফেসবুক, ইনস্টাগ্রাম ও লিঙ্কডইনের জন্য আকর্ষক সোশ্যাল মিডিয়া ক্যাপশন ও হ্যাশট্যাগ তৈরি করুন।"),
+    inputSchema: [
+      { name: "topic", label: L("Topic / Message", "টপিক বা বার্তা"), type: "text", required: true },
+      {
+        name: "mood",
+        label: L("Tone / Style", "ক্যাপশনের ধরণ"),
+        type: "select",
+        options: [
+          { value: "engaging", label: L("High Engagement (Questions & Emojis)", "উচ্চ এনগেজমেন্ট ও প্রশ্ন") },
+          { value: "professional", label: L("Professional & Thoughtful", "প্রফেশনাল ও গম্ভীর") },
+          { value: "short", label: L("Short & Punchy", "সংক্ষিপ্ত ও আকর্ষণীয়") },
+        ],
+      },
+    ],
+    run: (input) => {
+      const topic = String(input.topic || "").trim();
+      const mood = String(input.mood || "engaging");
+      if (!topic) return { kind: "text", value: "Please enter a topic." };
+
+      const tags = topic.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/).slice(0, 4).map((w) => `#${w}`).join(" ");
+
+      if (mood === "professional") {
+        return {
+          kind: "text",
+          value: [
+            `LinkedIn / Professional Post:`,
+            `Key reflections on ${topic}:`,
+            `Success in this space requires relentless focus on fundamentals. When we prioritize clear execution over temporary trends, sustainable impact follows.`,
+            ``,
+            `What principles guide your approach? Looking forward to hearing your insights below.`,
+            `${tags} #leadership #growth #strategy`,
+          ].join("\n"),
+        };
+      }
+
+      if (mood === "short") {
+        return {
+          kind: "text",
+          value: [
+            `Twitter / Threads / Short Form:`,
+            `${topic} — simplicity beats complexity every single time. ✨`,
+            `${tags} #focus`,
+          ].join("\n"),
+        };
+      }
+
+      // Default: Engaging
+      return {
+        kind: "text",
+        value: [
+          `Instagram & Facebook Caption:`,
+          `Ready to transform your ${topic}? 🚀✨`,
+          `Here is the thing most people overlook: consistency wins the long game!`,
+          ``,
+          `👇 Save this post & drop your favorite tip in the comments!`,
+          `${tags} #trending #creator #dailyinspiration`,
+        ].join("\n"),
+      };
+    },
+    seoTitle: L("Social Media Caption Generator - Multi-Platform Captions", "সোশ্যাল মিডিয়া ক্যাপশন জেনারেটর - সোশ্যাল ক্যাপশন ও হ্যাশট্যাগ"),
+    seoDescription: L("Generate engaging social captions with hashtags for Instagram, Facebook, and LinkedIn in seconds.", "সোশ্যাল মিডিয়ায় শেয়ার করার জন্য ট্রেন্ডিং ক্যাপশন ও হ্যাশট্যাগ তৈরি করুন একদম সহজে।"),
+    keywords: ["social media caption generator", "instagram caption", "facebook caption", "সোশ্যাল মিডিয়া ক্যাপশন"],
+    instructions: LI(
+      [
+        "Enter the message, subject, or photo description.",
+        "Select your preferred style (High Engagement, Professional, or Short).",
+        "Click Run Tool to copy your custom captions.",
+      ],
+      [
+        "আপনার পোস্টের বিষয় বা বার্তা লিখুন।",
+        "ক্যাপশনের স্টাইল নির্বাচন করুন।",
+        "রান বাটনে ক্লিক করে কপি করার উপযোগী ক্যাপশন পান।",
+      ]
+    ),
+    faqs: [],
+    related: ["ai-caption-generator", "hashtag-generator", "social-media-character-counter"],
   },
   {
     id: "thumbnail-size-guide", slug: "thumbnail-size-guide", category: "social", icon: "Image",

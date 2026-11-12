@@ -3,37 +3,67 @@ import { allTools } from "@/tools/registry";
 import { categories } from "@/lib/categories";
 import { locales } from "@/lib/i18n";
 
+const BASE = "https://tools.nasirdigitalhub.com";
+const LAST_MODIFIED = new Date();
+
+function languageAlternates(path: string) {
+  const languages: Record<string, string> = {};
+  for (const l of locales) {
+    languages[l] = `${BASE}/${l}${path}`;
+  }
+  languages["x-default"] = `${BASE}/en${path}`;
+  return { languages };
+}
+
 export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://tools.nasirdigitalhub.com";
   const entries: MetadataRoute.Sitemap = [];
 
-  for (const locale of locales) {
-    // Primary landing pages
-    entries.push({ url: `${base}/${locale}`, changeFrequency: "daily", priority: 1.0 });
-    entries.push({ url: `${base}/${locale}/tools`, changeFrequency: "daily", priority: 0.9 });
-    entries.push({ url: `${base}/${locale}/popular`, changeFrequency: "daily", priority: 0.9 });
-    entries.push({ url: `${base}/${locale}/categories`, changeFrequency: "weekly", priority: 0.8 });
-    entries.push({ url: `${base}/${locale}/directory`, changeFrequency: "weekly", priority: 0.8 });
-    entries.push({ url: `${base}/${locale}/pricing`, changeFrequency: "monthly", priority: 0.7 });
-    entries.push({ url: `${base}/${locale}/blog`, changeFrequency: "weekly", priority: 0.7 });
-    entries.push({ url: `${base}/${locale}/privacy`, changeFrequency: "yearly", priority: 0.3 });
-    entries.push({ url: `${base}/${locale}/terms`, changeFrequency: "yearly", priority: 0.3 });
+  const staticPages: Array<{
+    path: string;
+    changeFrequency: MetadataRoute.Sitemap[number]["changeFrequency"];
+    priority: number;
+  }> = [
+    { path: "", changeFrequency: "daily", priority: 1.0 },
+    { path: "/tools", changeFrequency: "daily", priority: 0.9 },
+    { path: "/popular", changeFrequency: "daily", priority: 0.9 },
+    { path: "/categories", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/directory", changeFrequency: "weekly", priority: 0.8 },
+    { path: "/pricing", changeFrequency: "monthly", priority: 0.7 },
+    { path: "/blog", changeFrequency: "weekly", priority: 0.7 },
+    { path: "/privacy", changeFrequency: "yearly", priority: 0.3 },
+    { path: "/terms", changeFrequency: "yearly", priority: 0.3 },
+  ];
 
-    // Category hubs
-    for (const cat of categories) {
+  for (const locale of locales) {
+    for (const page of staticPages) {
       entries.push({
-        url: `${base}/${locale}/categories/${cat.slug}`,
-        changeFrequency: "weekly",
-        priority: 0.8,
+        url: `${BASE}/${locale}${page.path}`,
+        lastModified: LAST_MODIFIED,
+        changeFrequency: page.changeFrequency,
+        priority: page.priority,
+        alternates: languageAlternates(page.path),
       });
     }
 
-    // All individual tools (161+)
-    for (const t of allTools) {
+    for (const cat of categories) {
+      const path = `/categories/${cat.slug}`;
       entries.push({
-        url: `${base}/${locale}/tools/${t.slug}`,
+        url: `${BASE}/${locale}${path}`,
+        lastModified: LAST_MODIFIED,
         changeFrequency: "weekly",
-        priority: t.popular ? 0.9 : 0.7,
+        priority: 0.8,
+        alternates: languageAlternates(path),
+      });
+    }
+
+    for (const tool of allTools) {
+      const path = `/tools/${tool.slug}`;
+      entries.push({
+        url: `${BASE}/${locale}${path}`,
+        lastModified: LAST_MODIFIED,
+        changeFrequency: "weekly",
+        priority: tool.popular ? 0.9 : 0.7,
+        alternates: languageAlternates(path),
       });
     }
   }

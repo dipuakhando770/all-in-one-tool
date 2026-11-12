@@ -31,43 +31,159 @@ export const calculatorTools: ToolDefinition[] = [
   {
     id: "percentage-calculator", slug: "percentage-calculator", category: "calculator", icon: "Percent",
     name: L("Percentage Calculator", "শতকরা ক্যালকুলেটর"),
-    description: L("Calculate percentages easily.", "সহজে শতকরা হিসাব।"),
+    description: L("Calculate percentage proportions, fractional values, and percentage increases/decreases instantly.", "সহজে যেকোনো সংখ্যার শতকরা বা পারসেন্টেজ অনুপাত, ছাড় এবং হ্রাস-বৃদ্ধি হিসাব করুন।"),
     inputSchema: [
-      { name: "value", label: L("Value", "ভ্যালু"), type: "number", required: true },
-      { name: "total", label: L("Total", "মোট"), type: "number", required: true },
+      {
+        name: "mode",
+        label: L("Calculation Mode", "হিসাবের ধরন"),
+        type: "select",
+        options: [
+          { value: "what_pct", label: L("What % is X of Y? (e.g. 25 of 200 = 12.5%)", "X সংখ্যাটি Y-এর কত শতাংশ? (যেমন: ২০০ এর মধ্যে ২৫)") },
+          { value: "pct_of", label: L("What is X% of Y? (e.g. 15% of 80 = 12)", "Y-এর X% কত? (যেমন: ৮০ এর ১৫%)") },
+          { value: "pct_change", label: L("Percentage change from X to Y", "X থেকে Y-তে শতকরা বৃদ্ধি বা হ্রাস") },
+        ],
+      },
+      { name: "value", label: L("Value X", "প্রথম সংখ্যা (X)"), type: "number", required: true },
+      { name: "total", label: L("Value Y", "দ্বিতীয় সংখ্যা (Y)"), type: "number", required: true },
     ],
     run: (input) => {
-      const v = Number(input.value), t = Number(input.total);
-      if (t === 0) return { kind: "text", value: "Total cannot be 0" };
-      const pct = (v / t) * 100;
-      return { kind: "text", value: `${v} is ${pct.toFixed(2)}% of ${t}` };
+      const mode = String(input.mode || "what_pct");
+      const x = Number(input.value);
+      const y = Number(input.total);
+
+      if (isNaN(x) || isNaN(y)) {
+        return { kind: "text", value: "Please enter valid numeric values for X and Y." };
+      }
+
+      if (mode === "pct_of") {
+        // What is X% of Y?
+        const result = (x / 100) * y;
+        return {
+          kind: "text",
+          value: [
+            `Result: ${x}% of ${y} = ${result.toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+            `-------------------------------------------`,
+            `Formula: (${x} / 100) * ${y} = ${result.toFixed(2)}`,
+            `Decimal multiplier: ${(x / 100).toFixed(4)}`,
+            `Remaining balance: ${(y - result).toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+          ].join("\n"),
+        };
+      }
+
+      if (mode === "pct_change") {
+        // Change from X to Y
+        if (x === 0) return { kind: "text", value: "Initial value X cannot be 0 for percentage change." };
+        const diff = y - x;
+        const pctChange = (diff / x) * 100;
+        const trend = diff >= 0 ? "Increase" : "Decrease";
+        return {
+          kind: "text",
+          value: [
+            `Percentage Change: ${pctChange >= 0 ? "+" : ""}${pctChange.toFixed(2)}% (${trend})`,
+            `-------------------------------------------`,
+            `Absolute difference: ${diff >= 0 ? "+" : ""}${diff.toLocaleString(undefined, { maximumFractionDigits: 4 })}`,
+            `Initial value (X): ${x}`,
+            `Final value (Y): ${y}`,
+            `Formula: ((${y} - ${x}) / ${x}) * 100 = ${pctChange.toFixed(2)}%`,
+          ].join("\n"),
+        };
+      }
+
+      // Default: What % is X of Y?
+      if (y === 0) return { kind: "text", value: "Total (Y) cannot be 0 when calculating proportion." };
+      const pct = (x / y) * 100;
+      return {
+        kind: "text",
+        value: [
+          `Result: ${x} is ${pct.toFixed(2)}% of ${y}`,
+          `-------------------------------------------`,
+          `Fraction: ${x} / ${y}`,
+          `Decimal: ${(x / y).toFixed(4)}`,
+          `Formula: (${x} / ${y}) * 100 = ${pct.toFixed(2)}%`,
+          `Remaining percentage: ${(100 - pct).toFixed(2)}%`,
+        ].join("\n"),
+      };
     },
-    seoTitle: L("Percentage Calculator", "শতকরা ক্যালকুলেটর"),
-    seoDescription: L("Calculate percentage.", "শতকরা হিসাব।"),
-    keywords: ["percentage calculator"],
-    instructions: LI(["Enter value and total."], ["ভ্যালু ও মোট দিন।"]),
+    seoTitle: L(
+      "Percentage Calculator - Free Online Percent Calculator & Formula",
+      "শতকরা ক্যালকুলেটর - সহজে যেকোনো সংখ্যার শতকরা বা পারসেন্টেজ হিসাব"
+    ),
+    seoDescription: L(
+      "Calculate percentages, proportions, percentage discounts, and percentage changes with formula breakdowns. 100% free.",
+      "যেকোনো সংখ্যার শতকরা মান, ডিসকাউন্ট, ভগ্নাংশ ও হ্রাস-বৃদ্ধি তাৎক্ষণিকভাবে হিসাব করুন সম্পূর্ণ বিনামূল্যে।"
+    ),
+    keywords: ["percentage calculator", "percent calculator", "calculate percentage", "শতকরা ক্যালকুলেটর", "percentage formula"],
+    instructions: LI(
+      [
+        "Select your calculation mode (What % is X of Y, What is X% of Y, or Percentage Change).",
+        "Enter the numbers into Value X and Value Y.",
+        "Click Run Tool to view instant answers and formula steps.",
+      ],
+      [
+        "হিসাবের মোড বেছে নিন (X সংখ্যাটি Y-এর কত %, Y-এর X% কত, অথবা শতকরা পরিবর্তন)।",
+        "প্রথম ও দ্বিতীয় ঘরের সংখ্যাগুলো লিখুন।",
+        "রান বাটনে ক্লিক করে সাথে সাথে ফলাফল এবং সূত্র দেখুন।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["discount-calculator", "vat-calculator"],
   },
   {
     id: "discount-calculator", slug: "discount-calculator", category: "calculator", icon: "Tag",
     name: L("Discount Calculator", "ডিসকাউন্ট ক্যালকুলেটর"),
-    description: L("Calculate discounted price.", "ডিসকাউন্টেড দাম হিসাব।"),
+    description: L("Calculate discounted sale prices, savings amount, and tax instantly.", "পণ্যের মূল দাম ও ডিসকাউন্টের শতাংশ থেকে ছাড়ের পরিমাণ ও চূড়ান্ত দাম হিসাব করুন।"),
     inputSchema: [
       { name: "price", label: L("Original Price", "মূল দাম"), type: "number", required: true },
       { name: "discount", label: L("Discount %", "ডিসকাউন্ট %"), type: "number", required: true },
+      { name: "tax", label: L("Sales Tax % (Optional)", "সেলস ট্যাক্স / ভ্যাট % (ঐচ্ছিক)"), type: "number" },
     ],
     run: (input) => {
-      const p = Number(input.price), d = Number(input.discount);
-      const final = p - (p * d) / 100;
-      return { kind: "text", value: `Discounted price: ${final.toFixed(2)}\nYou save: ${(p - final).toFixed(2)}` };
+      const p = Number(input.price);
+      const d = Number(input.discount);
+      const taxRate = Number(input.tax || 0);
+
+      if (isNaN(p) || isNaN(d)) {
+        return { kind: "text", value: "Please enter valid numeric price and discount values." };
+      }
+
+      const savings = (p * d) / 100;
+      const discountedPrice = Math.max(0, p - savings);
+      const taxAmount = (discountedPrice * taxRate) / 100;
+      const finalPrice = discountedPrice + taxAmount;
+
+      return {
+        kind: "text",
+        value: [
+          `Final Payable Price: ${finalPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          `-------------------------------------------`,
+          `Original Price:    ${p.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          `Discount Rate:     ${d}%`,
+          `You Save:          ${savings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          `Discounted Price:  ${discountedPrice.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+          taxRate > 0 ? `Tax/VAT (${taxRate}%):      +${taxAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : null,
+          `Effective Savings: ${p > 0 ? ((savings / p) * 100).toFixed(1) : 0}% off original price`,
+        ].filter(Boolean).join("\n"),
+      };
     },
-    seoTitle: L("Discount Calculator", "ডিসকাউন্ট ক্যালকুলেটর"),
-    seoDescription: L("Calculate discount.", "ডিসকাউন্ট হিসাব।"),
-    keywords: ["discount calculator"],
-    instructions: LI(["Enter price and discount."], ["দাম ও ডিসকাউন্ট দিন।"]),
+    seoTitle: L("Discount Calculator - Calculate Sale Price & Savings", "ডিসকাউন্ট ক্যালকুলেটর - কেনাকাটায় ছাড় ও ফাইনাল দাম হিসাব"),
+    seoDescription: L("Calculate exact discount savings, sale prices, and optional tax in seconds.", "মূল দাম এবং ছাড়ের শতকরা হার দিয়ে সঠিক সঞ্চয় ও চূড়ান্ত প্রদেয় মূল্য বের করুন।"),
+    keywords: ["discount calculator", "sale calculator", "percent off calculator", "ডিসকাউন্ট ক্যালকুলেটর"],
+    instructions: LI(
+      [
+        "Enter the original retail price.",
+        "Enter the discount percentage (e.g. 20 for 20% off).",
+        "Optional: Enter your local sales tax or VAT percentage.",
+        "Click Run Tool to view your final price and exact savings.",
+      ],
+      [
+        "পণ্যের আসল দাম লিখুন।",
+        "ডিসকাউন্টের শতকরা হার লিখুন (যেমন ২০% এর জন্য ২০)।",
+        "ঐচ্ছিক: কোনো ভ্যাট বা ট্যাক্স থাকলে তা লিখুন।",
+        "রান বাটনে ক্লিক করে সাথে সাথে ফাইনাল দাম ও কত টাকা সাশ্রয় হলো দেখুন।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["percentage-calculator", "vat-calculator"],
   },
   {
     id: "vat-calculator", slug: "vat-calculator", category: "calculator", icon: "Receipt",

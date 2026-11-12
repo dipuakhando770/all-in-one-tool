@@ -51,4 +51,7 @@ cookies.txt
 cfbuild.txt
 swctest.js
 *.zip
+.agents/
+.claude/
+.opencode/
 

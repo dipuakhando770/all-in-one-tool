@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { ThemeProvider } from "@/components/theme-provider";
+import { allTools } from "@/tools/registry";
 
 const SITE_URL = "https://tools.nasirdigitalhub.com";
 const SITE_NAME = "Nasir Tools";
-const SITE_DESCRIPTION =
-  "161+ free online tools for images, PDFs, text, code, calculations and more. Fast, browser-based, no registration required.";
+const SITE_DESCRIPTION = `${allTools.length}+ free online tools for images, PDFs, text, code, calculations and more. Fast, browser-based, no registration required.`;
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

@@ -2,15 +2,7 @@ import type { ToolDefinition } from "@/lib/tools/types";
 import type { Locale } from "@/lib/i18n";
 import { PDFDocument } from "pdf-lib";
 import JSZip from "jszip";
-// pdfjs loaded dynamically inside run() to avoid build-time issues
-
-async function getPdfjs() {
-  const mod = await import("pdfjs-dist");
-  if (typeof window !== "undefined") {
-    mod.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${mod.version}/pdf.worker.min.mjs`;
-  }
-  return mod;
-}
+import { getPdfjs } from "@/lib/pdf/pdfjs";
 
 const L = (en: string, bn: string): Record<Locale, string> => ({ en, bn });
 const LI = (en: string[], bn: string[]): Record<Locale, string[]> => ({ en, bn });

@@ -84,29 +84,72 @@ export const imageTools: ToolDefinition[] = [
   {
     id: "image-resizer", slug: "image-resizer", category: "image", icon: "Maximize2",
     name: L("Image Resizer", "ইমেজ রিসাইজার"),
-    description: L("Resize images to custom dimensions.", "কাস্টম মাপে ছবি রিসাইজ।"),
+    description: L("Resize images to custom pixel dimensions or social presets right in your browser.", "ছবির রেজোলিউশন কাস্টম পিক্সেল মাপে বা নির্দিষ্ট সোশ্যাল মিডিয়া সাইজে রিসাইজ করুন।"),
     inputSchema: [
-      { name: "file", label: L("Image", "ছবি"), type: "file", accept: "image/*", required: true },
-      { name: "width", label: L("Width", "প্রস্থ"), type: "number", required: true },
-      { name: "height", label: L("Height", "উচ্চতা"), type: "number", required: true },
+      { name: "file", label: L("Image File", "ছবি ফাইল"), type: "file", accept: "image/*", required: true },
+      { name: "width", label: L("Target Width (px)", "টার্গেট প্রস্থ (পিক্সেল)"), type: "number", required: true },
+      { name: "height", label: L("Target Height (px)", "টার্গেট উচ্চতা (পিক্সেল)"), type: "number", required: true },
+      {
+        name: "format",
+        label: L("Output Format", "আউটপুট ফরম্যাট"),
+        type: "select",
+        options: [
+          { value: "original", label: L("Keep Original Format", "মূল ফরম্যাট রাখুন") },
+          { value: "image/webp", label: L("WebP (Modern, Small)", "WebP (আধুনিক)") },
+          { value: "image/jpeg", label: L("JPEG / JPG", "JPEG / JPG") },
+          { value: "image/png", label: L("PNG", "PNG") },
+        ],
+      },
     ],
     run: async (input) => {
       const file = input.file as File;
-      if (!file) return { kind: "text", value: "No file" };
+      if (!file) return { kind: "text", value: "No image file provided." };
+      const w = Number(input.width);
+      const h = Number(input.height);
+      if (!w || !h || w <= 0 || h <= 0) {
+        return { kind: "text", value: "Please enter positive numbers for width and height." };
+      }
+
       const img = await fileToImage(file);
       const canvas = document.createElement("canvas");
-      canvas.width = Number(input.width); canvas.height = Number(input.height);
-      const ctx = canvas.getContext("2d")!;
-      ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-      const dataUrl = await canvasToDataURL(canvas, file.type || "image/png", 0.9);
-      return { kind: "image", value: dataUrl, filename: "resized.png" };
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return { kind: "text", value: "Could not create canvas context." };
+
+      const formatChoice = String(input.format || "original");
+      const mime = formatChoice === "original" ? (file.type || "image/png") : formatChoice;
+
+      if (mime === "image/jpeg") {
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, w, h);
+      }
+
+      ctx.drawImage(img, 0, 0, w, h);
+      const dataUrl = await canvasToDataURL(canvas, mime, 0.92);
+      const ext = mime.split("/")[1] || "png";
+      const base = file.name.replace(/\.[^.]+$/, "");
+      return { kind: "image", value: dataUrl, filename: `${base}-${w}x${h}.${ext}` };
     },
-    seoTitle: L("Image Resizer", "ইমেজ রিসাইজার"),
-    seoDescription: L("Resize images online.", "অনলাইনে ছবি রিসাইজ।"),
-    keywords: ["image resizer"],
-    instructions: LI(["Upload image, set dimensions, run."], ["ছবি আপলোড, মাপ দিন, চালান।"]),
+    seoTitle: L("Image Resizer - Resize Images Online for Free", "ইমেজ রিসাইজার - অনলাইনে ছবির রেজোলিউশন ও সাইজ পরিবর্তন"),
+    seoDescription: L("Resize JPG, PNG, and WebP images to exact pixel dimensions instantly. 100% in-browser and private.", "ব্রাউজারেই সম্পূর্ণ নিরাপদে যেকোনো ছবির প্রস্থ ও উচ্চতা পিক্সেল মাপে রিসাইজ করুন।"),
+    keywords: ["image resizer", "resize image", "resize photo online", "ছবি রিসাইজার"],
+    instructions: LI(
+      [
+        "Upload your image (JPG, PNG, or WebP).",
+        "Enter your target width and height in pixels.",
+        "Select your preferred output format.",
+        "Click Run Tool to download your resized image.",
+      ],
+      [
+        "আপনার ছবিটি নির্বাচন করুন (JPG, PNG বা WebP)।",
+        "প্রয়োজনীয় প্রস্থ ও উচ্চতা পিক্সেলে লিখুন।",
+        "আউটপুট ফরম্যাট নির্বাচন করুন।",
+        "রান বাটনে ক্লিক করে সাথে সাথে রিসাইজ করা ছবি ডাউনলোড করুন।",
+      ]
+    ),
     faqs: [],
-    related: ["image-compressor"],
+    related: ["image-compressor", "image-format-converter", "image-rotator"],
   },
   {
     id: "image-format-converter", slug: "image-format-converter", category: "image", icon: "RefreshCw",

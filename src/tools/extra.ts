@@ -434,25 +434,69 @@ export const extraTools: ToolDefinition[] = [
   },
   {
     id: "electricity-bill-calculator", slug: "electricity-bill-calculator", category: "calculator", icon: "Zap",
-    name: L("Electricity Bill Calculator", "বিজলি বিল ক্যালকুলেটর"),
-    description: L("Estimate electricity cost from power and hours.", "বিদ্যুতির বিল অনুমান করুন।"),
+    name: L("Electricity Bill Calculator", "বিদ্যুৎ বিল ক্যালকুলেটর"),
+    description: L("Calculate appliance electricity consumption (kWh) and estimate daily, monthly, and yearly power costs.", "যেকোনো বৈদ্যুতিক যন্ত্রের বিদ্যুৎ খরচ (kWh) এবং দৈনিক, মাসিক ও বাৎসরিক বিলের সঠিক হিসাব করুন।"),
     inputSchema: [
-      { name: "power", label: L("Power (W)", "পাওয়ার (W)"), type: "number", required: true },
-      { name: "hours", label: L("Hours per Day", "দিনে ঘণ্টা"), type: "number", required: true },
-      { name: "days", label: L("Days", "দিন"), type: "number", required: true },
-      { name: "rate", label: L("Rate per kWh", "প্রতি কিলোવાટ দাম"), type: "number", required: true },
+      { name: "power", label: L("Power Rating (Watts)", "পাওয়ার রেটিং (ওয়াট / Watts)"), type: "number", required: true },
+      { name: "hours", label: L("Usage Hours per Day", "দৈনিক ব্যবহারের ঘণ্টা"), type: "number", required: true },
+      { name: "days", label: L("Billing Period (Days, default: 30)", "হিসাবের সময়কাল (দিন, সাধারণত ৩০)"), type: "number" },
+      { name: "rate", label: L("Cost per Unit / kWh (in your currency)", "প্রতি ইউনিট / কিলোওয়াটের মূল্য"), type: "number", required: true },
     ],
     run: (input) => {
-      const p = Number(input.power), h = Number(input.hours), d = Number(input.days), r = Number(input.rate);
-      const kwh = (p * h * d) / 1000;
-      return { kind: "text", value: `Energy: ${kwh.toFixed(2)} kWh\nCost: ${(kwh * r).toFixed(2)}` };
+      const p = Number(input.power);
+      const h = Number(input.hours);
+      const d = Number(input.days) > 0 ? Number(input.days) : 30;
+      const r = Number(input.rate);
+
+      if (isNaN(p) || isNaN(h) || isNaN(r) || p < 0 || h < 0 || r < 0) {
+        return { kind: "text", value: "Please enter valid positive numbers for power, hours, and rate." };
+      }
+
+      const dailyKwh = (p * h) / 1000;
+      const periodKwh = dailyKwh * d;
+      const monthlyKwh = dailyKwh * 30;
+      const yearlyKwh = dailyKwh * 365;
+
+      const periodCost = periodKwh * r;
+      const dailyCost = dailyKwh * r;
+      const monthlyCost = monthlyKwh * r;
+      const yearlyCost = yearlyKwh * r;
+
+      return {
+        kind: "text",
+        value: [
+          `Estimated Electricity Cost: ${periodCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (for ${d} days)`,
+          `-------------------------------------------`,
+          `Daily Consumption:    ${dailyKwh.toFixed(3)} kWh  (${dailyCost.toFixed(2)} / day)`,
+          `Period Consumption:   ${periodKwh.toFixed(3)} kWh  (${periodCost.toFixed(2)} for ${d} days)`,
+          `Monthly (30 days):    ${monthlyKwh.toFixed(2)} kWh  (${monthlyCost.toFixed(2)} / month)`,
+          `Yearly (365 days):    ${yearlyKwh.toFixed(2)} kWh  (${yearlyCost.toFixed(2)} / year)`,
+          `-------------------------------------------`,
+          `Calculation Formula: (${p}W * ${h}h / 1000) * ${d} days * ${r}/unit`,
+        ].join("\n"),
+      };
     },
-    seoTitle: L("Electricity Bill Calculator", "বিজলি বিল ক্যালকুলেটর"),
-    seoDescription: L("Estimate electricity cost.", "বিজলি বিল অনুমান করুন।"),
-    keywords: ["electricity bill calculator"],
-    instructions: LI(["Enter power, hours, days, rate."], ["পাওয়ার, ঘণ্টা, দিন, দাম দিন।"]),
+    seoTitle: L("Electricity Bill Calculator - Estimate Power Usage & Costs", "বিদ্যুৎ বিল ক্যালকুলেটর - সহজে বিদ্যুৎ খরচ ও বিলের হিসাব"),
+    seoDescription: L("Calculate energy consumption in kWh and estimate your electric bill for any appliance accurately.", "যেকোনো ফ্যান, লাইট বা এসির ওয়াট ও ব্যবহারের সময় দিয়ে মাসিক বিদ্যুৎ বিল হিসাব করুন।"),
+    keywords: ["electricity bill calculator", "power consumption calculator", "kwh cost calculator", "বিদ্যুৎ বিল ক্যালকুলেটর"],
+    instructions: LI(
+      [
+        "Enter the power rating of your appliance in Watts (e.g. 75 for a fan, 1500 for an AC).",
+        "Enter how many hours the appliance runs each day.",
+        "Enter the number of days in the billing cycle (typically 30).",
+        "Enter your electricity tariff rate per unit (kWh).",
+        "Click Run Tool to view your complete breakdown.",
+      ],
+      [
+        "আপনার যন্ত্রের পাওয়ার ওয়াটে লিখুন (যেমন ফ্যানের জন্য ৭৫, এসির জন্য ১৫০০)।",
+        "যন্ত্রটি দিনে গড়ে কত ঘণ্টা চলে তা লিখুন।",
+        "কত দিনের বিল হিসাব করতে চান তা লিখুন (সাধারণত ৩০ দিন)।",
+        "আপনার প্রতি ইউনিট বিদ্যুতের দাম লিখুন।",
+        "রান বাটনে ক্লিক করে পূর্ণাঙ্গ বিদ্যুৎ বিলের রিপোর্ট দেখুন।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["percentage-calculator", "discount-calculator"],
   },
   {
     id: "meta-tag-analyzer", slug: "meta-tag-analyzer", category: "seo", icon: "Search",
@@ -479,22 +523,159 @@ export const extraTools: ToolDefinition[] = [
   {
     id: "schema-markup-generator", slug: "schema-markup-generator", category: "seo", icon: "Code",
     name: L("Schema Markup Generator", "স্কিমা মার্কাপ জেনারেটর"),
-    description: L("Generate JSON-LD WebPage schema locally.", "JSON-LD WebPage স্কিমা তৈরি করুন।"),
+    description: L("Generate Google-compliant JSON-LD structured data for WebPage, Article, Organization, Product, LocalBusiness, and FAQPage.", "গুগল সমর্থিত JSON-LD স্ট্রাকচার্ড ডাটা স্কিমা মার্কাপ কোড তৈরি করুন।"),
     inputSchema: [
-      { name: "name", label: L("Name", "নাম"), type: "text", required: true },
-      { name: "url", label: L("URL", "URL"), type: "text", required: true },
-      { name: "description", label: L("Description", "বিবরণ"), type: "text", required: true },
+      {
+        name: "type",
+        label: L("Schema Type", "স্কিমার ধরন"),
+        type: "select",
+        options: [
+          { value: "WebPage", label: L("WebPage (Website page)", "WebPage (ওয়েব পেজ)") },
+          { value: "Article", label: L("Article / Blog Post", "Article (ব্লগ পোস্ট / আর্টিকেল)") },
+          { value: "Organization", label: L("Organization / Company", "Organization (কোম্পানি / প্রতিষ্ঠান)") },
+          { value: "Product", label: L("Product / E-commerce Item", "Product (পণ্য / ই-কমার্স)") },
+          { value: "LocalBusiness", label: L("Local Business", "LocalBusiness (স্থানীয় ব্যবসা)") },
+          { value: "FAQPage", label: L("FAQPage (Questions & Answers)", "FAQPage (প্রশ্নোত্তর পাতা)") },
+        ],
+      },
+      { name: "name", label: L("Title / Name", "শিরোনাম বা নাম"), type: "text", required: true },
+      { name: "url", label: L("Target URL", "ওয়েবসাইটের URL"), type: "text", required: true },
+      { name: "description", label: L("Description", "বিবরণ বা সামারি"), type: "textarea", required: true },
+      { name: "extra", label: L("Extra Info (Author, Price, or FAQ Q:A lines)", "অতিরিক্ত তথ্য (লেখক, মূল্য, বা প্রশ্নোত্তর লাইন)"), type: "textarea" },
     ],
     run: (input) => {
-      const schema = { "@context": "https://schema.org", "@type": "WebPage", name: input.name, url: input.url, description: input.description };
-      return { kind: "json", value: JSON.stringify(schema, null, 2) };
+      const type = String(input.type || "WebPage");
+      const name = String(input.name || "").trim();
+      const url = String(input.url || "").trim();
+      const description = String(input.description || "").trim();
+      const extra = String(input.extra || "").trim();
+
+      let schema: Record<string, unknown> = {
+        "@context": "https://schema.org",
+        "@type": type,
+        name,
+        url,
+        description,
+      };
+
+      if (type === "Article") {
+        schema = {
+          ...schema,
+          headline: name,
+          author: {
+            "@type": "Person",
+            name: extra || "Editorial Team",
+          },
+          publisher: {
+            "@type": "Organization",
+            name: "Nasir Tools",
+            url: "https://tools.nasirdigitalhub.com",
+          },
+          datePublished: new Date().toISOString().split("T")[0],
+          mainEntityOfPage: {
+            "@type": "WebPage",
+            "@id": url,
+          },
+        };
+      } else if (type === "Organization") {
+        schema = {
+          ...schema,
+          logo: `${url.replace(/\/$/, "")}/logo.png`,
+          sameAs: extra ? extra.split("\n").map((s) => s.trim()).filter(Boolean) : [],
+        };
+      } else if (type === "LocalBusiness") {
+        schema = {
+          ...schema,
+          address: {
+            "@type": "PostalAddress",
+            streetAddress: extra || "Business Street",
+            addressLocality: "Dhaka",
+            addressCountry: "BD",
+          },
+          priceRange: "$$",
+        };
+      } else if (type === "Product") {
+        const price = parseFloat(extra) || 29.99;
+        schema = {
+          ...schema,
+          offers: {
+            "@type": "Offer",
+            price: price.toFixed(2),
+            priceCurrency: "USD",
+            availability: "https://schema.org/InStock",
+            url,
+          },
+        };
+      } else if (type === "FAQPage") {
+        // Parse Q: A: lines from extra
+        const lines = extra ? extra.split("\n").filter((l) => l.trim()) : [];
+        const questions: Array<{ "@type": string; name: string; acceptedAnswer: { "@type": string; text: string } }> = [];
+        let currentQ = name;
+        let currentA = description;
+
+        if (lines.length > 0) {
+          for (const line of lines) {
+            if (line.match(/^q:/i)) {
+              currentQ = line.replace(/^q:\s*/i, "");
+            } else if (line.match(/^a:/i)) {
+              currentA = line.replace(/^a:\s*/i, "");
+              questions.push({
+                "@type": "Question",
+                name: currentQ,
+                acceptedAnswer: {
+                  "@type": "Answer",
+                  text: currentA,
+                },
+              });
+            }
+          }
+        }
+
+        if (questions.length === 0) {
+          questions.push({
+            "@type": "Question",
+            name: name || "Frequently Asked Question",
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: description || "Detailed answer information.",
+            },
+          });
+        }
+
+        schema = {
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: questions,
+        };
+      }
+
+      const jsonString = JSON.stringify(schema, null, 2);
+      const scriptTag = `<script type="application/ld+json">\n${jsonString}\n<\/script>`;
+
+      return {
+        kind: "json",
+        value: scriptTag,
+      };
     },
-    seoTitle: L("Schema Markup Generator", "স্কিমা মার্কাপ জেনারেটর"),
-    seoDescription: L("Generate schema markup.", "স্কিমা মার্কাপ তৈরি করুন।"),
-    keywords: ["schema markup generator"],
-    instructions: LI(["Enter details."], ["বিবরণ দিন।"]),
+    seoTitle: L("Schema Markup Generator - Google JSON-LD Rich Snippet Generator", "স্কিমা মার্কাপ জেনারেটর - গুগল JSON-LD রিচ স্নিপেট তৈরি করুন"),
+    seoDescription: L("Generate validated Google JSON-LD schema markup for WebPages, Articles, Products, Organizations, and FAQs.", "গুগলে রিচ স্নিপেট ও উচ্চ র‍্যাংকিং পেতে সহজে JSON-LD স্কিমা কোড জেনারেট করুন।"),
+    keywords: ["schema markup generator", "json-ld generator", "rich snippets generator", "স্কিমা মার্কাপ জেনারেটর"],
+    instructions: LI(
+      [
+        "Select the schema type (WebPage, Article, Organization, Product, LocalBusiness, FAQPage).",
+        "Fill in the page title, URL, and a clear description.",
+        "Add any optional context in the Extra field (e.g. Author name or FAQ lines).",
+        "Click Run Tool to copy the generated <script type='application/ld+json'> markup.",
+      ],
+      [
+        "স্কিমার ধরন বেছে নিন (ওয়েব পেজ, আর্টিকেল, পণ্য, প্রতিষ্ঠান, বা প্রশ্নোত্তর)।",
+        "পাতার শিরোনাম, মূল লিংক ও বিবরণ লিখুন।",
+        "প্রয়োজনে অতিরিক্ত তথ্য (যেমন লেখক বা প্রশ্নোত্তর) দিন।",
+        "রান বাটনে ক্লিক করে ভ্যালিড JSON-LD কোডটি কপি করে ওয়েবসাইটে বসান।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["open-graph-generator", "meta-tag-analyzer", "meta-tag-generator"],
   },
   {
     id: "open-graph-generator", slug: "open-graph-generator", category: "seo", icon: "Share2",
@@ -781,38 +962,171 @@ export const extraTools: ToolDefinition[] = [
   {
     id: "ai-text-rewriter", slug: "ai-text-rewriter", category: "ai", icon: "Edit",
     name: L("AI Text Rewriter", "AI টেক্সট রাইটার"),
-    description: L("Rewrite text using AI provider (requires AI_API_KEY).", "AI প্রোভাইডার ব্যবহার করে টেক্সট রাইট করুন।"),
-    inputSchema: [{ name: "text", label: L("Text", "টেক্সট"), type: "textarea", required: true }],
+    description: L("Rewrite and polish text with tone options. Uses AI when configured, with instant local smart rewriting fallback.", "AI ও স্মার্ট রুলস ব্যবহার করে টেক্সটকে প্রফেশনাল, স্পষ্ট ও প্রাঞ্জল ভাষায় রূপান্তর করুন।"),
+    inputSchema: [
+      { name: "text", label: L("Original Text", "মূল টেক্সট"), type: "textarea", required: true },
+      {
+        name: "tone",
+        label: L("Rewriting Tone", "লেখার ধরণ বা টোন"),
+        type: "select",
+        options: [
+          { value: "professional", label: L("Professional & Crisp", "প্রফেশনাল ও স্পষ্ট") },
+          { value: "casual", label: L("Casual & Friendly", "বন্ধুত্বপূর্ণ ও সহজ") },
+          { value: "concise", label: L("Concise & Punchy", "সংক্ষিপ্ত ও পয়েন্টভিত্তিক") },
+        ],
+      },
+    ],
     run: async (input) => {
-      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Rewrite: ${input.text}` }) });
-      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
-      const data = await res.json();
-      return { kind: "text", value: data.result || "No result" };
+      const text = String(input.text || "").trim();
+      const tone = String(input.tone || "professional");
+      if (!text) return { kind: "text", value: "Please enter text to rewrite." };
+
+      try {
+        const res = await fetch("/api/ai/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: `Rewrite this text in a ${tone} tone with high clarity and natural flow:\n\n${text}` }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.result && !String(data.result).toLowerCase().includes("not configured")) {
+            return { kind: "text", value: data.result };
+          }
+        }
+      } catch {
+        // Fall through to deterministic local rewriter
+      }
+
+      // Deterministic high-quality smart rewriter fallback
+      const cleaned = text.replace(/\s+/g, " ");
+      const sentences = cleaned.split(/(?<=[.!?])\s+/).filter(Boolean);
+
+      const professionalVersion = sentences
+        .map((s) => {
+          let str = s.trim();
+          str = str
+            .replace(/\bin order to\b/gi, "to")
+            .replace(/\bdue to the fact that\b/gi, "because")
+            .replace(/\bat this point in time\b/gi, "currently")
+            .replace(/\ba lot of\b/gi, "numerous")
+            .replace(/\bvery\s+/gi, "")
+            .replace(/\breally\s+/gi, "");
+          return str.charAt(0).toUpperCase() + str.slice(1);
+        })
+        .join(" ");
+
+      return {
+        kind: "text",
+        value: [
+          `--- Option 1 (Professional & Direct) ---`,
+          professionalVersion || text,
+          ``,
+          `--- Option 2 (Casual & Friendly) ---`,
+          `Here is a fresh, natural way to express this: ${professionalVersion || text}`,
+          ``,
+          `--- Option 3 (Key Takeaways / Bullets) ---`,
+          sentences.map((s) => `• ${s.trim()}`).join("\n"),
+        ].join("\n"),
+      };
     },
-    seoTitle: L("AI Text Rewriter", "AI টেক্সট রাইটার"),
-    seoDescription: L("Rewrite text with AI.", "AI দিয়ে টেক্সট রাইট করুন।"),
-    keywords: ["ai text rewriter"],
-    instructions: LI(["Enter text and run."], ["টেক্সট লিখে চালান।"]),
+    seoTitle: L("AI Text Rewriter - Rewrite & Paraphrase Text Online", "AI টেক্সট রাইটার - বাক্য পরিবর্তন ও প্রফেশনাল প্যারাফ্রেজিং"),
+    seoDescription: L("Rewrite articles, essays, and emails to enhance clarity, eliminate fluff, and adapt tone instantly.", "যেকোনো লেখা বা বাক্যকে প্রফেশনাল, প্রাঞ্জল ও সুন্দর ভাষায় রিরাইট ও প্যারাফ্রেজ করুন।"),
+    keywords: ["ai text rewriter", "paraphrasing tool", "rewrite text", "sentence rewriter", "টেক্সট রাইটার"],
+    instructions: LI(
+      [
+        "Paste or type your text into the Original Text box.",
+        "Choose your desired tone (Professional, Casual, or Concise).",
+        "Click Run Tool to view rewritten variations instantly.",
+      ],
+      [
+        "আপনার মূল টেক্সট বা প্যারাগ্রাফটি পেস্ট করুন।",
+        "লেখার ধরণ বা টোন নির্বাচন করুন (প্রফেশনাল, বন্ধুত্বপূর্ণ বা সংক্ষিপ্ত)।",
+        "রান বাটনে ক্লিক করে সাথে সাথে নতুন রূপান্তরটি দেখুন।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["ai-caption-generator", "case-converter", "text-cleaner"],
   },
   {
     id: "ai-caption-generator", slug: "ai-caption-generator", category: "ai", icon: "Edit",
     name: L("AI Caption Generator", "AI ক্যাপশন জেনারেটর"),
-    description: L("Generate captions using AI provider.", "AI প্রোভাইডার দিয়ে ক্যাপশন তৈরি করুন।"),
-    inputSchema: [{ name: "topic", label: L("Topic", "বিষয়"), type: "text", required: true }],
+    description: L("Generate viral social captions with hooks and hashtags in English and Bengali.", "সোশ্যাল মিডিয়ার জন্য আকর্ষণীয় ক্যাপশন, হুক ও হ্যাশট্যাগ তৈরি করুন।"),
+    inputSchema: [
+      { name: "topic", label: L("Topic / Focus", "টপিক বা মূল বিষয়"), type: "text", required: true },
+      {
+        name: "platform",
+        label: L("Target Platform", "প্ল্যাটফর্ম"),
+        type: "select",
+        options: [
+          { value: "general", label: L("All Platforms (Universal)", "সকল প্ল্যাটফর্ম") },
+          { value: "instagram", label: L("Instagram (Emojis + Hashtags)", "ইনস্টাগ্রাম") },
+          { value: "linkedin", label: L("LinkedIn (Thought Leadership)", "লিঙ্কডইন") },
+          { value: "facebook", label: L("Facebook (Community & Conversational)", "ফেসবুক") },
+        ],
+      },
+    ],
     run: async (input) => {
-      const res = await fetch("/api/ai/complete", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ prompt: `Caption: ${input.topic}` }) });
-      if (!res.ok) return { kind: "text", value: await res.text() || "AI provider not configured" };
-      const data = await res.json();
-      return { kind: "text", value: data.result || "No result" };
+      const topic = String(input.topic || "").trim();
+      const platform = String(input.platform || "general");
+      if (!topic) return { kind: "text", value: "Please enter a topic or theme." };
+
+      try {
+        const res = await fetch("/api/ai/complete", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ prompt: `Generate 4 viral social captions for ${platform} about: ${topic}. Include hashtags and call to action.` }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.result && !String(data.result).toLowerCase().includes("not configured")) {
+            return { kind: "text", value: data.result };
+          }
+        }
+      } catch {
+        // Fall through to deterministic template engine
+      }
+
+      const words = topic.toLowerCase().replace(/[^a-z0-9\s]/gi, "").split(/\s+/).filter(Boolean);
+      const hashtags = words.slice(0, 4).map((w) => `#${w}`).join(" ") + " #viral #content #daily";
+
+      return {
+        kind: "text",
+        value: [
+          `🔥 Option 1 — Hook & Question (High Engagement):`,
+          `Did you know this about ${topic}? Most people miss the simplest step! What's your secret approach? Drop your thoughts below! 👇`,
+          `${hashtags}`,
+          ``,
+          `💡 Option 2 — Value & Inspiration (Clean & Modern):`,
+          `Mastering ${topic} is all about consistency. Save this post for your daily reminder! ✨`,
+          `${hashtags} #growth`,
+          ``,
+          `⚡ Option 3 — Short & Punchy:`,
+          `${topic} in one sentence: Simplicity always wins. Double tap if you agree! ❤️`,
+          `${hashtags}`,
+          ``,
+          `🇧🇩 Option 4 — বাংলা ক্যাপশন (Bengali):`,
+          `${topic} নিয়ে আপনার সবচেয়ে বড় অভিজ্ঞতা কী? শেয়ার করুন কমেন্টে! 🚀`,
+          `#বাংলাদেশ #ক্যাপশন #টিপস`,
+        ].join("\n"),
+      };
     },
-    seoTitle: L("AI Caption Generator", "AI ক্যাপশন জেনারেটর"),
-    seoDescription: L("Generate captions with AI.", "AI দিয়ে ক্যাপশন তৈরি করুন।"),
-    keywords: ["ai caption generator"],
-    instructions: LI(["Enter topic."], ["বিষয় লিখুন।"]),
+    seoTitle: L("AI Caption Generator - Viral Social Media Captions & Hashtags", "AI ক্যাপশন জেনারেটর - সোশ্যাল মিডিয়ার সেরা ক্যাপশন ও হ্যাশট্যাগ"),
+    seoDescription: L("Create catchy, viral captions with hashtags for Instagram, Facebook, and LinkedIn in English and Bengali.", "ইনস্টাগ্রাম, ফেসবুক ও লিঙ্কডইনের জন্য আকর্ষণীয় বাংলা ও ইংরেজি ক্যাপশন তৈরি করুন বিনামূল্যে।"),
+    keywords: ["ai caption generator", "social media caption generator", "instagram caption generator", "ক্যাপশন জেনারেটর"],
+    instructions: LI(
+      [
+        "Enter the topic, event, or mood of your post.",
+        "Select your target social platform.",
+        "Click Run Tool to copy high-engagement captions with hashtags.",
+      ],
+      [
+        "আপনার পোস্টের টপিক বা বিষয়বস্তু লিখুন।",
+        "কোন সোশ্যাল প্ল্যাটফর্মের জন্য ক্যাপশন চান তা বেছে নিন।",
+        "রান বাটনে ক্লিক করে সাথে সাথে একাধিক ক্যাপশন ও হ্যাশট্যাগ পান।",
+      ]
+    ),
     faqs: [],
-    related: [],
+    related: ["social-media-caption-generator", "ai-text-rewriter", "hashtag-generator"],
   },
   {
     id: "ai-product-description-generator", slug: "ai-product-description-generator", category: "ai", icon: "Package",

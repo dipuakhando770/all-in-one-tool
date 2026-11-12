@@ -20,10 +20,15 @@ function readAllToolDefs(): { file: string; id: string; slug: string }[] {
   return entries;
 }
 
-test("tool files contain no duplicate slugs", () => {
+test("tool files contain exactly 169 registered tools without duplicate slugs", () => {
   const entries = readAllToolDefs();
   const slugs = entries.map((e) => e.slug);
   const unique = new Set(slugs);
+  assert.equal(
+    entries.length,
+    169,
+    `Expected exactly 169 registered tools, found ${entries.length}`
+  );
   assert.equal(
     unique.size,
     slugs.length,

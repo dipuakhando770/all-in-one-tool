@@ -33,7 +33,10 @@ async function fileToImage(file: File): Promise<HTMLImageElement> {
       URL.revokeObjectURL(url);
       resolve(img);
     };
-    img.onerror = reject;
+    img.onerror = (e) => {
+      URL.revokeObjectURL(url);
+      reject(e);
+    };
     img.src = url;
   });
 }

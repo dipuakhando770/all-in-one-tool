@@ -10,7 +10,7 @@ async function fileToImage(file: File): Promise<HTMLImageElement> {
     const img = new Image();
     const url = URL.createObjectURL(file);
     img.onload = () => { URL.revokeObjectURL(url); resolve(img); };
-    img.onerror = reject;
+    img.onerror = (e) => { URL.revokeObjectURL(url); reject(e); };
     img.src = url;
   });
 }

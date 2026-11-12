@@ -62,3 +62,4 @@
 1. **Massive Impression vs CTR Gap:** `image-compressor` generated 173 impressions (29% of total website impressions) but only 1 click (0.58% CTR) due to low ranking position (67.86).
 2. **Page 1 Positions Lacking Rich Snippets:** `ai-caption-generator` ranks on Page 1 (Position 8.04 in Bengali, Position 9.95 in English) but generated 0 clicks. Missing `FAQPage` and `HowTo` rich snippets left search results inconspicuous.
 3. **High-Converting Calculator Intent:** `discount-calculator` (Position 12.57) and `percentage-calculator` (Position 25.30 in Bengali) are close to page 1 threshold. Enhancing structured answers, formula explanations, and real-world examples directly addresses the transactional search intent.
+

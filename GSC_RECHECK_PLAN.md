@@ -58,3 +58,4 @@
   - *Action:* Optimize mobile workspace viewport and button touch targets in `batch-image-processor.tsx`.
 - **Trigger 3: Schema warning in Search Console**
   - *Action:* Run Google Rich Results Test validator on the specific URL and inspect output JSON-LD.
+

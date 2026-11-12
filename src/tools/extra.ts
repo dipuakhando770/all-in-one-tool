@@ -1018,6 +1018,9 @@ export const extraTools: ToolDefinition[] = [
       return {
         kind: "text",
         value: [
+          `ℹ️ Smart Rewriter (Local Engine — AI not configured)`,
+          `Your text has been rewritten using built-in linguistic rules. For AI-powered rewriting, configure an AI_API_KEY.`,
+          ``,
           `--- Option 1 (Professional & Direct) ---`,
           professionalVersion || text,
           ``,
@@ -1092,6 +1095,9 @@ export const extraTools: ToolDefinition[] = [
       return {
         kind: "text",
         value: [
+          `ℹ️ Caption Templates (Local Engine — AI not configured)`,
+          `These captions are generated from built-in templates. For AI-powered captions, configure an AI_API_KEY.`,
+          ``,
           `🔥 Option 1 — Hook & Question (High Engagement):`,
           `Did you know this about ${topic}? Most people miss the simplest step! What's your secret approach? Drop your thoughts below! 👇`,
           `${hashtags}`,
